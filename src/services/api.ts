@@ -39,7 +39,7 @@ export class StorageApi {
   static async getItems(limit: number = 50000, idSklad: number = 1383): Promise<Item[]> {
     try {
       const response: AxiosResponse<ApiResponse<Item>> = await apiClient.get(
-        `/api/storage/all?limit=100000&id_sklad=${idSklad}`
+        `/api/storage/all?limit=${limit}&id_sklad=${idSklad}`
       );
 
       if (response.data?.data?.items) {

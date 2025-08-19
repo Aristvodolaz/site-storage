@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Chip, Alert } from '@mui/material';
+import { Box, Typography, Chip } from '@mui/material';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 

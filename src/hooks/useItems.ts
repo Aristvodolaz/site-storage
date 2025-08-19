@@ -1,6 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { StorageApi } from '@/services/api';
-import { Item } from '@/types/item';
 
 export const useItems = (warehouse: number = 1383) => {
   const queryClient = useQueryClient();
@@ -12,7 +11,7 @@ export const useItems = (warehouse: number = 1383) => {
     refetch,
   } = useQuery({
     queryKey: ['items', warehouse],
-    queryFn: () => StorageApi.getItems(10000, warehouse),
+    queryFn: () => StorageApi.getItems(100000, warehouse),
     staleTime: 5 * 60 * 1000, // 5 минут
     refetchInterval: 5 * 60 * 1000, // Автообновление каждые 5 минут
     retry: 3,

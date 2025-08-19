@@ -1,4 +1,3 @@
-import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -44,20 +43,6 @@ const theme = createTheme({
     },
   },
   components: {
-    MuiDataGrid: {
-      styleOverrides: {
-        root: {
-          border: 'none',
-          '& .MuiDataGrid-cell': {
-            borderRight: '1px solid rgba(224, 224, 224, 1)',
-          },
-          '& .MuiDataGrid-columnHeaders': {
-            backgroundColor: 'rgba(25, 118, 210, 0.08)',
-            borderBottom: '2px solid rgba(25, 118, 210, 0.2)',
-          },
-        },
-      },
-    },
     MuiAppBar: {
       styleOverrides: {
         root: {

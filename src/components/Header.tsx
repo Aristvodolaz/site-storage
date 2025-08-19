@@ -7,7 +7,6 @@ import {
   Box,
   IconButton,
   CircularProgress,
-  Chip,
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
