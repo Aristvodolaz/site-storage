@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  storage-web:
+    build: .
+    container_name: storage-web-app
+    ports:
+      - "3011:3011"
+    restart: unless-stopped
+    networks:
+      - storage-network
+
+networks:
+  storage-network:
+    driver: bridge
