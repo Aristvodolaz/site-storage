@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Box, Container, Alert, Snackbar } from '@mui/material';
 import { GridSortModel, GridFilterModel, GridPaginationModel } from '@mui/x-data-grid';
 
-import { Header } from '@/components/Header';
 import { SearchFilters } from '@/components/SearchFilters';
 import { ItemsTable } from '@/components/ItemsTable';
 import { StatusBar } from '@/components/StatusBar';
@@ -13,7 +12,18 @@ import { filterItems } from '@/utils/filters';
 import { exportToExcel } from '@/utils/export';
 import { FilterOptions } from '@/types/item';
 
-export const StoragePage: React.FC = () => {
+interface StoragePageProps {
+  onDataChange?: (data: { 
+    totalItems: number; 
+    filteredItems: number; 
+    isLoading: boolean; 
+    lastUpdated: Date;
+    onRefresh: () => void;
+    onExport: () => void;
+  }) => void;
+}
+
+export const StoragePage: React.FC<StoragePageProps> = ({ onDataChange }) => {
   // Состояние фильтров
   const [filters, setFilters] = useState<FilterOptions>({
     search: '',
@@ -39,6 +49,20 @@ export const StoragePage: React.FC = () => {
   const filteredItems = useMemo(() => {
     return filterItems(items, filters);
   }, [items, filters]);
+
+  // Уведомляем родительский компонент об изменениях
+  React.useEffect(() => {
+    if (onDataChange) {
+      onDataChange({
+        totalItems: items.length,
+        filteredItems: filteredItems.length,
+        isLoading,
+        lastUpdated: new Date(),
+        onRefresh: handleRefresh,
+        onExport: handleExport,
+      });
+    }
+  }, [items.length, filteredItems.length, isLoading, onDataChange]);
 
   // Обработчики
   const handleRefresh = () => {
@@ -90,17 +114,7 @@ export const StoragePage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Заголовок */}
-      <Header
-        totalItems={items.length}
-        filteredItems={filteredItems.length}
-        isLoading={isLoading}
-        lastUpdated={new Date()}
-        onRefresh={handleRefresh}
-        onExport={handleExport}
-      />
-
+    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       {/* Основное содержимое */}
       <Container maxWidth={false} sx={{ flex: 1, py: 2, overflow: 'auto' }}>
         {/* Фильтры */}

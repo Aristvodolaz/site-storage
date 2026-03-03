@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import { Item, ApiResponse } from '@/types/item';
+import { ReportApiResponse, ReportFilters } from '@/types/reports';
 
 const API_BASE_URL = 'http://10.171.12.36:3006';
 
@@ -151,6 +152,43 @@ export class StorageApi {
       updateDate: apiItem.updateDate || '',
       executor: apiItem.executor || '',
     };
+  }
+}
+
+export class ReportsApi {
+  /**
+   * Получение отчета по операциям
+   * Принимает фильтры и возвращает агрегированные данные для графиков и таблиц
+   */
+  static async getReport(filters: ReportFilters): Promise<ReportApiResponse> {
+    try {
+      const params = new URLSearchParams();
+      
+      params.append('date_from', filters.dateFrom);
+      params.append('date_to', filters.dateTo);
+      params.append('group_by', filters.groupBy);
+      
+      if (filters.executor) {
+        params.append('executor', filters.executor);
+      }
+      
+      if (filters.endpoint) {
+        params.append('endpoint', filters.endpoint);
+      }
+      
+      if (filters.includeDetails) {
+        params.append('include_details', 'true');
+      }
+
+      const response: AxiosResponse<ReportApiResponse> = await apiClient.get(
+        `/api/logs/report?${params.toString()}`
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при получении отчета:', error);
+      throw error;
+    }
   }
 }
 

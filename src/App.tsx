@@ -1,9 +1,13 @@
+import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material';
+import { CssBaseline, Box } from '@mui/material';
 import { ruRU } from '@mui/x-data-grid';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Header } from '@/components/Header';
 import { StoragePage } from '@/pages/StoragePage';
+import { ReportsPage } from '@/pages/ReportsPage';
 
 // Создаем клиент React Query
 const queryClient = new QueryClient({
@@ -61,12 +65,47 @@ const theme = createTheme({
 }, ruRU);
 
 function App() {
+  const [storagePageData, setStoragePageData] = useState<{
+    totalItems: number;
+    filteredItems: number;
+    isLoading: boolean;
+    lastUpdated: Date;
+    onRefresh?: () => void;
+    onExport?: () => void;
+  }>({
+    totalItems: 0,
+    filteredItems: 0,
+    isLoading: false,
+    lastUpdated: new Date(),
+  });
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <StoragePage />
+          <BrowserRouter>
+            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+              {/* Общий Header для всех страниц */}
+              <Header
+                totalItems={storagePageData.totalItems}
+                filteredItems={storagePageData.filteredItems}
+                isLoading={storagePageData.isLoading}
+                lastUpdated={storagePageData.lastUpdated}
+                onRefresh={storagePageData.onRefresh}
+                onExport={storagePageData.onExport}
+              />
+
+              {/* Роуты */}
+              <Routes>
+                <Route 
+                  path="/" 
+                  element={<StoragePage onDataChange={setStoragePageData} />} 
+                />
+                <Route path="/reports" element={<ReportsPage />} />
+              </Routes>
+            </Box>
+          </BrowserRouter>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>
