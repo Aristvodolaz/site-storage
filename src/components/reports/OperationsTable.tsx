@@ -9,6 +9,7 @@ import {
   TableHead,
   TableRow,
   Chip,
+  Box,
 } from '@mui/material';
 import { GroupedDataByEndpoint } from '@/types/reports';
 

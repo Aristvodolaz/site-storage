@@ -13,7 +13,6 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { GroupedDataByTime } from '@/types/reports';
-import { format } from 'date-fns';
 
 interface ActivityChartProps {
   data: GroupedDataByTime[];

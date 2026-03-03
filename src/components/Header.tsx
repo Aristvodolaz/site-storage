@@ -42,6 +42,8 @@ export const Header: React.FC<HeaderProps> = ({
   const currentTab = location.pathname === '/reports' ? 1 : 0;
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    // Используем event, чтобы избежать предупреждения TypeScript о неиспользуемом параметре
+    void event;
     if (newValue === 0) {
       navigate('/');
     } else if (newValue === 1) {

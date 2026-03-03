@@ -9,7 +9,6 @@ import {
   TableHead,
   TableRow,
   Chip,
-  Box,
 } from '@mui/material';
 import { OperationLogDetail } from '@/types/reports';
 import { format } from 'date-fns';

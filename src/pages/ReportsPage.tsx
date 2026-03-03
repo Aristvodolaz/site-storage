@@ -11,7 +11,7 @@ import {
   Paper,
   Typography,
 } from '@mui/material';
-import { subHours, startOfDay, endOfDay } from 'date-fns';
+import { subHours } from 'date-fns';
 
 import { ReportSummary } from '@/components/reports/ReportSummary';
 import { TimeRangeSelector } from '@/components/reports/TimeRangeSelector';
@@ -55,6 +55,8 @@ export const ReportsPage: React.FC = () => {
   });
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    // Используем event, чтобы избежать предупреждения TypeScript о неиспользуемом параметре
+    void event;
     setActiveTab(newValue);
   };
 

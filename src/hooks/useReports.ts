@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { ReportsApi } from '@/services/api';
-import { ReportFilters, ReportData } from '@/types/reports';
+import { ReportFilters } from '@/types/reports';
 
 // Hook для получения отчетов по операциям
 export const useReports = (filters: ReportFilters) => {
