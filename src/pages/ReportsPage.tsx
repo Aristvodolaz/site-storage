@@ -42,8 +42,14 @@ export const ReportsPage: React.FC = () => {
       case 1: return 'endpoint'; // Операции
       case 2: return 'executor'; // Пользователи
       case 3: return 'hour'; // Детали
+      case 4: return 'endpoint'; // Зона хранения
       default: return 'hour';
     }
+  };
+
+  // Фильтр по endpoint для вкладки "Зона хранения"
+  const getEndpointFilter = (): string | undefined => {
+    return activeTab === 4 ? '/api/storage' : undefined;
   };
 
   // Загрузка данных
@@ -52,6 +58,7 @@ export const ReportsPage: React.FC = () => {
     dateTo,
     groupBy: getGroupBy(),
     includeDetails: activeTab === 3 ? true : includeDetails,
+    endpoint: getEndpointFilter(),
   });
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -83,7 +90,7 @@ export const ReportsPage: React.FC = () => {
         />
 
         {/* Опция для включения деталей */}
-        {activeTab !== 3 && (
+        {activeTab !== 3 && activeTab !== 4 && (
           <Paper sx={{ p: 2, mb: 2 }}>
             <FormControlLabel
               control={
@@ -124,6 +131,7 @@ export const ReportsPage: React.FC = () => {
                 <Tab label="Операции (ЧТО)" />
                 <Tab label="Пользователи (КТО)" />
                 <Tab label="Детали (КТО+ЧТО+ГДЕ)" />
+                <Tab label="Зона хранения" />
               </Tabs>
             </Paper>
 
@@ -146,6 +154,10 @@ export const ReportsPage: React.FC = () => {
 
               {activeTab === 3 && (
                 <DetailsTable data={reportData.details || []} />
+              )}
+
+              {activeTab === 4 && (
+                <OperationsTable data={reportData.grouped_data as GroupedDataByEndpoint[]} />
               )}
             </Box>
           </>

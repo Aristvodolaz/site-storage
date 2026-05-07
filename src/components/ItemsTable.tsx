@@ -12,7 +12,7 @@ import {
   GridToolbarColumnsButton,
   GridPaginationModel,
 } from '@mui/x-data-grid';
-import { Box, Chip, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Chip, useTheme, useMediaQuery, Tooltip } from '@mui/material';
 import { Item } from '@/types/item';
 import { format, parseISO } from 'date-fns';
 import { ScrollIndicator } from './ScrollIndicator';
@@ -211,9 +211,40 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         field: 'reason',
         headerName: 'Причина',
         width: baseWidths.reason,
-        minWidth: 100,
+        minWidth: 120,
         sortable: true,
         filterable: true,
+        renderCell: (params) => {
+          const reason: string = params.value || '';
+          const conditionState: string = params.row.condition_state || '';
+          const isBlocked = reason === 'Блокировка для использования';
+          const isUncertain = !isBlocked && (conditionState === 'BAD' || conditionState.toLowerCase().includes('некондиц'));
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%' }}>
+              {isBlocked && (
+                <Tooltip title="Заблокировано для использования">
+                  <Chip
+                    label="✕"
+                    size="small"
+                    sx={{ bgcolor: '#D32F2F', color: 'white', fontWeight: 'bold', minWidth: 28, height: 20, fontSize: '11px' }}
+                  />
+                </Tooltip>
+              )}
+              {isUncertain && (
+                <Tooltip title="Неопределённый статус">
+                  <Chip
+                    label="?"
+                    size="small"
+                    sx={{ bgcolor: '#F57C00', color: 'white', fontWeight: 'bold', minWidth: 28, height: 20, fontSize: '11px' }}
+                  />
+                </Tooltip>
+              )}
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {reason}
+              </span>
+            </Box>
+          );
+        },
       },
       {
         field: 'expirationDateFormatted',
