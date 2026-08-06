@@ -8,6 +8,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Header } from '@/components/Header';
 import { StoragePage } from '@/pages/StoragePage';
 import { ReportsPage } from '@/pages/ReportsPage';
+import { HistoryPage } from '@/pages/HistoryPage';
 
 // Создаем клиент React Query
 const queryClient = new QueryClient({
@@ -102,6 +103,7 @@ function App() {
                   path="/" 
                   element={<StoragePage onDataChange={setStoragePageData} />} 
                 />
+                <Route path="/history" element={<HistoryPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
               </Routes>
             </Box>

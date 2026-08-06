@@ -15,6 +15,7 @@ import {
   FileDownload as ExportIcon,
   Storage as StorageIcon,
   Assessment as ReportsIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -39,7 +40,9 @@ export const Header: React.FC<HeaderProps> = ({
   const location = useLocation();
 
   // Определяем активную вкладку по текущему пути
-  const currentTab = location.pathname === '/reports' ? 1 : 0;
+  const currentTab =
+    location.pathname === '/history' ? 1 :
+    location.pathname === '/reports' ? 2 : 0;
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     // Используем event, чтобы избежать предупреждения TypeScript о неиспользуемом параметре
@@ -47,11 +50,13 @@ export const Header: React.FC<HeaderProps> = ({
     if (newValue === 0) {
       navigate('/');
     } else if (newValue === 1) {
+      navigate('/history');
+    } else if (newValue === 2) {
       navigate('/reports');
     }
   };
 
-  const isReportsPage = location.pathname === '/reports';
+  const isStoragePage = location.pathname === '/';
 
   return (
     <AppBar position="static" elevation={2}>
@@ -81,6 +86,11 @@ export const Header: React.FC<HeaderProps> = ({
             label="Склад" 
             iconPosition="start"
           />
+          <Tab
+            icon={<HistoryIcon />}
+            label="История"
+            iconPosition="start"
+          />
           <Tab 
             icon={<ReportsIcon />} 
             label="Отчеты" 
@@ -89,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
         </Tabs>
 
         {/* Информация и действия (только для страницы склада) */}
-        {!isReportsPage && (
+        {isStoragePage && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
               <Typography variant="body2">

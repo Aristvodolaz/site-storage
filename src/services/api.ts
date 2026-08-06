@@ -1,8 +1,9 @@
 import axios, { AxiosResponse } from 'axios';
 import { Item, ApiResponse } from '@/types/item';
 import { ReportApiResponse, ReportFilters } from '@/types/reports';
+import { StorageOperationsFilters, StorageOperationsResponse } from '@/types/history';
 
-const API_BASE_URL = 'http://10.171.12.36:3006';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://10.171.12.36:3006';
 
 // Создаем экземпляр axios с базовой конфигурацией
 const apiClient = axios.create({
@@ -187,6 +188,44 @@ export class ReportsApi {
       return response.data;
     } catch (error) {
       console.error('Ошибка при получении отчета:', error);
+      throw error;
+    }
+  }
+}
+
+export class HistoryApi {
+  /**
+   * Получение истории складских операций (PLACE / MOVE / PICK)
+   */
+  static async getOperations(filters: StorageOperationsFilters): Promise<StorageOperationsResponse> {
+    try {
+      const params = new URLSearchParams();
+
+      params.append('date_from', filters.dateFrom);
+      params.append('date_to', filters.dateTo);
+      params.append('limit', String(filters.limit ?? 100));
+      params.append('offset', String(filters.offset ?? 0));
+
+      if (filters.operationType) {
+        params.append('operationType', filters.operationType);
+      }
+      if (filters.productId) {
+        params.append('productId', filters.productId);
+      }
+      if (filters.locationId) {
+        params.append('locationId', filters.locationId);
+      }
+      if (filters.executor) {
+        params.append('executor', filters.executor);
+      }
+
+      const response: AxiosResponse<StorageOperationsResponse> = await apiClient.get(
+        `/api/storage/operations?${params.toString()}`
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при получении истории операций:', error);
       throw error;
     }
   }
