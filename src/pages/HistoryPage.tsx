@@ -97,10 +97,22 @@ export const HistoryPage: React.FC = () => {
       valueGetter: (params) => params.row.fromLocationId || '—',
     },
     {
+      field: 'fromLocationName',
+      headerName: 'Название ячейки (откуда)',
+      width: 170,
+      valueGetter: (params) => params.row.fromLocationName || '—',
+    },
+    {
       field: 'toLocationId',
       headerName: 'Куда',
       width: 140,
       valueGetter: (params) => params.row.toLocationId || '—',
+    },
+    {
+      field: 'toLocationName',
+      headerName: 'Название ячейки (куда)',
+      width: 170,
+      valueGetter: (params) => params.row.toLocationName || '—',
     },
     {
       field: 'quantity',

@@ -9,7 +9,9 @@ export interface StorageOperation {
   productName: string | null;
   prunitId: number | null;
   fromLocationId: string | null;
+  fromLocationName: string | null;
   toLocationId: string | null;
+  toLocationName: string | null;
   quantity: number | null;
   expirationDate: string | null;
   conditionState: string | null;
