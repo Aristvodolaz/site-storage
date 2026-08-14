@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Container,
@@ -15,7 +15,7 @@ import {
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { subHours } from 'date-fns';
 
-import { TimeRangeSelector } from '@/components/reports/TimeRangeSelector';
+import { TimeRangeSelector, getDateRangeFromPreset } from '@/components/reports/TimeRangeSelector';
 import { useStorageHistory } from '@/hooks/useStorageHistory';
 import { TimeRangePreset } from '@/types/reports';
 import { StorageOperationType } from '@/types/history';
@@ -33,6 +33,9 @@ const OPERATION_COLORS: Record<string, 'success' | 'info' | 'warning' | 'default
   PICK: 'warning',
 };
 
+// Интервал сдвига окна дат для пресетов «последние N» / «сегодня»
+const LIVE_WINDOW_MS = 10_000;
+
 export const HistoryPage: React.FC = () => {
   const [preset, setPreset] = useState<TimeRangePreset>('last24h');
   const [dateFrom, setDateFrom] = useState(subHours(new Date(), 24).toISOString());
@@ -43,6 +46,24 @@ export const HistoryPage: React.FC = () => {
   const [executor, setExecutor] = useState('');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
+
+  // Сдвигаем «дата окончания» к now, иначе новые операции не попадают в фильтр
+  const refreshDateWindow = () => {
+    if (preset === 'custom' || preset === 'yesterday') return;
+    const range = getDateRangeFromPreset(preset);
+    if (!range.from || !range.to) return;
+    setDateFrom(range.from);
+    setDateTo(range.to);
+  };
+
+  useEffect(() => {
+    if (preset === 'custom' || preset === 'yesterday') return undefined;
+
+    refreshDateWindow();
+    const timer = window.setInterval(refreshDateWindow, LIVE_WINDOW_MS);
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preset]);
 
   const filters = useMemo(() => ({
     dateFrom,
@@ -55,7 +76,12 @@ export const HistoryPage: React.FC = () => {
     offset: page * pageSize,
   }), [dateFrom, dateTo, operationType, productId, locationId, executor, page, pageSize]);
 
-  const { data, isLoading, error, refetch } = useStorageHistory(filters);
+  const { data, isLoading, isFetching, error, refetch, dataUpdatedAt } = useStorageHistory(filters);
+
+  const handleRefresh = () => {
+    refreshDateWindow();
+    void refetch();
+  };
 
   const rows = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
@@ -136,8 +162,15 @@ export const HistoryPage: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
       <Container maxWidth={false} sx={{ py: 3 }}>
-        <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
+        <Typography variant="h4" gutterBottom sx={{ mb: 1 }}>
           История операций
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Онлайн-обновление каждые 10 сек
+          {dataUpdatedAt
+            ? ` · обновлено ${new Date(dataUpdatedAt).toLocaleTimeString()}`
+            : ''}
+          {isFetching && !isLoading ? ' · загрузка…' : ''}
         </Typography>
 
         <TimeRangeSelector
@@ -156,7 +189,7 @@ export const HistoryPage: React.FC = () => {
             setPreset(value);
             setPage(0);
           }}
-          onRefresh={() => refetch()}
+          onRefresh={handleRefresh}
         />
 
         <Paper sx={{ p: 2, mb: 2 }}>

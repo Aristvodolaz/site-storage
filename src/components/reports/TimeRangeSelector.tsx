@@ -24,7 +24,7 @@ interface TimeRangeSelectorProps {
 }
 
 // Функция для получения диапазона дат по пресету
-const getDateRangeFromPreset = (preset: TimeRangePreset): { from: string; to: string } => {
+export const getDateRangeFromPreset = (preset: TimeRangePreset): { from: string; to: string } => {
   const now = new Date();
   
   switch (preset) {
