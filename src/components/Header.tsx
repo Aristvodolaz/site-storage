@@ -13,6 +13,7 @@ import {
 import {
   Refresh as RefreshIcon,
   FileDownload as ExportIcon,
+  Print as PrintIcon,
   Storage as StorageIcon,
   Assessment as ReportsIcon,
   History as HistoryIcon,
@@ -26,6 +27,7 @@ interface HeaderProps {
   lastUpdated?: Date;
   onRefresh?: () => void;
   onExport?: () => void;
+  onPrint?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -35,6 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
   lastUpdated,
   onRefresh,
   onExport,
+  onPrint,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -113,6 +116,15 @@ export const Header: React.FC<HeaderProps> = ({
                 </Typography>
               )}
             </Box>
+
+            <Button
+              color="inherit"
+              startIcon={<PrintIcon />}
+              onClick={onPrint}
+              disabled={isLoading || filteredItems === 0}
+            >
+              Печать
+            </Button>
 
             <Button
               color="inherit"

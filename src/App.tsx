@@ -73,6 +73,7 @@ function App() {
     lastUpdated: Date;
     onRefresh?: () => void;
     onExport?: () => void;
+    onPrint?: () => void;
   }>({
     totalItems: 0,
     filteredItems: 0,
@@ -95,6 +96,7 @@ function App() {
                 lastUpdated={storagePageData.lastUpdated}
                 onRefresh={storagePageData.onRefresh}
                 onExport={storagePageData.onExport}
+                onPrint={storagePageData.onPrint}
               />
 
               {/* Роуты */}

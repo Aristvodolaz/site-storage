@@ -2,9 +2,24 @@ import * as XLSX from 'xlsx';
 import { Item } from '@/types/item';
 import { format } from 'date-fns';
 
-export const exportToExcel = (items: Item[], filename?: string) => {
+export interface ReportMeta {
+  /** Заголовок отчёта */
+  title?: string;
+  /** Итоговая сумма «Общее кол-во» по отфильтрованным строкам */
+  totalQuantity?: number;
+  /** Описание активных фильтров (label / value) */
+  filterSummary?: { label: string; value: string }[];
+}
+
+const expirationText = (value?: string): string =>
+  !value || value === '2999-01-01' || value.startsWith('2999-') ? 'СГ отсутствует' : value;
+
+/**
+ * Экспорт отфильтрованного списка в Excel.
+ * Лист «Товары» — данные, лист «Параметры отчёта» — фильтры и метаданные.
+ */
+export const exportToExcel = (items: Item[], meta: ReportMeta = {}, filename?: string) => {
   try {
-    // Подготавливаем данные для экспорта
     const exportData = items.map((item) => ({
       'Название': item.name,
       'Артикул': item.article,
@@ -12,67 +27,49 @@ export const exportToExcel = (items: Item[], filename?: string) => {
       'Кол-во ЕХ': item.quantity,
       'Вложенность ЕХ': item.nested_quantity,
       'Общее кол-во': item.product_qnt,
-      'Ячейка': item.wr_shk,
+      'Ячейка (ШК)': item.wr_shk,
       'Название ячейки': item.wr_name,
+      'Секция': (item.wr_name || '').split(/[-.]/)[0] || '',
       'ID склада': item.id_sklad,
       'ЕХ': item.prunit_name,
       'Состояние': item.condition_state,
       'Причина': item.reason,
-      'СГ': item.expiration_date === '2999-01-01' ? 'СГ отсутствует' : item.expiration_date,
+      'СГ': expirationText(item.expiration_date),
       'Создано': item.createDate,
       'Изменено': item.updateDate,
       'Исполнитель': item.executor,
     }));
 
-    // Создаем рабочую книгу
     const wb = XLSX.utils.book_new();
-
-    // Создаем лист с данными
     const ws = XLSX.utils.json_to_sheet(exportData);
 
-    // Настраиваем ширину столбцов
-    const columnWidths = [
-      { wch: 50 }, // Название
-      { wch: 15 }, // Артикул
-      { wch: 20 }, // Штрихкод
-      { wch: 12 }, // Кол-во ЕХ
-      { wch: 15 }, // Вложенность ЕХ
-      { wch: 15 }, // Общее кол-во
-      { wch: 15 }, // Ячейка
-      { wch: 25 }, // Название ячейки
-      { wch: 12 }, // ID склада
-      { wch: 10 }, // ЕХ
-      { wch: 15 }, // Состояние
-      { wch: 20 }, // Причина
-      { wch: 15 }, // СГ
-      { wch: 20 }, // Создано
-      { wch: 20 }, // Изменено
-      { wch: 20 }, // Исполнитель
+    ws['!cols'] = [
+      { wch: 50 }, { wch: 14 }, { wch: 16 }, { wch: 10 }, { wch: 14 }, { wch: 12 },
+      { wch: 14 }, { wch: 18 }, { wch: 8 }, { wch: 10 }, { wch: 12 }, { wch: 14 },
+      { wch: 24 }, { wch: 14 }, { wch: 19 }, { wch: 19 }, { wch: 26 },
     ];
+    ws['!autofilter'] = { ref: XLSX.utils.encode_range(XLSX.utils.decode_range(ws['!ref'] || 'A1')) };
+    if (exportData.length > 0) ws['!freeze'] = { xSplit: 0, ySplit: 1 };
 
-    ws['!cols'] = columnWidths;
-
-    // Добавляем лист в книгу
     XLSX.utils.book_append_sheet(wb, ws, 'Товары');
 
-    // Создаем лист с метаданными
-    const metadata = [
-      ['Информация', 'Отчет по товарам на складе'],
-      ['Дата формирования', format(new Date(), 'yyyy-MM-dd HH:mm:ss')],
-      ['Количество записей', items.length.toString()],
+    const metaRows: (string | number)[][] = [
+      ['Отчёт', meta.title || 'Остатки на складе'],
+      ['Дата формирования', format(new Date(), 'dd.MM.yyyy HH:mm:ss')],
+      ['Строк в отчёте', items.length],
+      ['Итого «Общее кол-во»', meta.totalQuantity ?? items.reduce((s, i) => s + (i.product_qnt || 0), 0)],
+      [],
+      ['Активные фильтры', ''],
+      ...(meta.filterSummary && meta.filterSummary.length
+        ? meta.filterSummary.map((r) => [r.label, r.value])
+        : [['—', 'фильтры не заданы']]),
     ];
+    const metaWs = XLSX.utils.aoa_to_sheet(metaRows);
+    metaWs['!cols'] = [{ wch: 24 }, { wch: 60 }];
+    XLSX.utils.book_append_sheet(wb, metaWs, 'Параметры отчёта');
 
-    const metaWs = XLSX.utils.aoa_to_sheet(metadata);
-    metaWs['!cols'] = [{ wch: 20 }, { wch: 40 }];
-    XLSX.utils.book_append_sheet(wb, metaWs, 'Информация');
-
-    // Генерируем имя файла
-    const defaultFilename = `inventory_report_${format(new Date(), 'yyyyMMdd')}.xlsx`;
-    const finalFilename = filename || defaultFilename;
-
-    // Сохраняем файл
-    XLSX.writeFile(wb, finalFilename);
-
+    const defaultFilename = `storage_1383_${format(new Date(), 'yyyyMMdd_HHmm')}.xlsx`;
+    XLSX.writeFile(wb, filename || defaultFilename);
     return true;
   } catch (error) {
     console.error('Ошибка при экспорте в Excel:', error);

@@ -27,20 +27,45 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export type TriState = 'all' | 'with' | 'without';
+
 export interface FilterOptions {
+  /** Свободный текстовый поиск */
   search: string;
+  /** Область текстового поиска */
   filterType: FilterType;
+  /** Склад (id_sklad) */
   warehouse: number;
+  /** Точное состояние товара ('all' — любое) */
+  condition: string;
+  /** Единицы хранения (ЕХ), пустой массив — любые */
+  prunitNames: string[];
+  /** Исполнители, пустой массив — любые. NO_EXECUTOR — строки без исполнителя */
+  executors: string[];
+  /** Секции ячеек (префикс названия ячейки), пустой массив — любые */
+  sections: string[];
+  /** Наличие срока годности */
+  expiration: TriState;
+  /** Наличие причины */
+  reason: TriState;
+  /** Минимальное общее количество */
+  qtyMin: number | null;
+  /** Максимальное общее количество */
+  qtyMax: number | null;
+  /** Дата изменения: с (yyyy-MM-dd) */
+  updatedFrom: string;
+  /** Дата изменения: по (yyyy-MM-dd) */
+  updatedTo: string;
 }
 
-export type FilterType = 
-  | 'all' 
-  | 'shk' 
-  | 'article' 
-  | 'cell' 
-  | 'cellName' 
-  | 'name' 
-  | 'executor' 
+export type FilterType =
+  | 'all'
+  | 'shk'
+  | 'article'
+  | 'cell'
+  | 'cellName'
+  | 'name'
+  | 'executor'
   | 'condition';
 
 export interface PaginationOptions {
