@@ -242,6 +242,18 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
               />
             </Grid>
 
+            <Grid item xs={12} sm={6} md={3}>
+              <Autocomplete
+                multiple
+                size="small"
+                options={facets.racks}
+                value={filters.racks}
+                onChange={(_, v) => set('racks', v)}
+                renderInput={(p) => <TextField {...p} label="Стеллажи" />}
+                limitTags={3}
+              />
+            </Grid>
+
             <Grid item xs={6} sm={3} md={2}>
               <TextField
                 fullWidth

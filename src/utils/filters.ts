@@ -12,6 +12,7 @@ export const EMPTY_FILTERS: FilterOptions = {
   prunitNames: [],
   executors: [],
   sections: [],
+  racks: [],
   expiration: 'all',
   reason: 'all',
   qtyMin: null,
@@ -23,10 +24,43 @@ export const EMPTY_FILTERS: FilterOptions = {
 const isEmptyExpiration = (value?: string): boolean =>
   !value || value === '2999-01-01' || value.startsWith('2999-');
 
-/** Секция ячейки — префикс названия до первого разделителя: "01-106-5" -> "01". */
+/** Секция ячейки — префикс названия до первого разделителя: "01-106-5" -> "01" (числовые секции дополняются нулём слева). */
 export const getSection = (wrName: string): string => {
   const match = /^\s*([0-9A-Za-zА-Яа-я]+)\s*[-.]/.exec(wrName || '');
-  return match ? match[1] : (wrName || '').trim();
+  const section = match ? match[1] : (wrName || '').trim();
+  return /^\d+$/.test(section) ? section.padStart(2, '0') : section;
+};
+
+/** Стеллаж ячейки — 2-й сегмент названия, между 1-м и 2-м разделителем: "01-106-5" -> "106" (числовые дополняются нулём слева). */
+export const getRack = (wrName: string): string => {
+  const parts = (wrName || '').trim().split(/[-.]/);
+  const rack = (parts[1] || '').trim();
+  return /^\d+$/.test(rack) ? rack.padStart(2, '0') : rack;
+};
+
+/**
+ * «естественное» сравнение строк вида "49-03-5" по числовым сегментам,
+ * чтобы 9-... не оказывался после 82-... из-за посимвольного сравнения строк.
+ */
+export const naturalCompare = (a: string, b: string): number => {
+  const segA = String(a || '').split(/[-.]/);
+  const segB = String(b || '').split(/[-.]/);
+  const len = Math.max(segA.length, segB.length);
+
+  for (let i = 0; i < len; i++) {
+    const sa = segA[i] ?? '';
+    const sb = segB[i] ?? '';
+    const na = Number(sa);
+    const nb = Number(sb);
+
+    if (sa !== '' && sb !== '' && !Number.isNaN(na) && !Number.isNaN(nb)) {
+      if (na !== nb) return na - nb;
+    } else if (sa !== sb) {
+      return sa.localeCompare(sb, 'ru');
+    }
+  }
+
+  return 0;
 };
 
 /** Дата в виде yyyy-MM-dd из ISO/строки (для сравнения диапазонов). */
@@ -44,6 +78,7 @@ export interface FilterFacets {
   executors: string[];
   hasNoExecutor: boolean;
   sections: string[];
+  racks: string[];
 }
 
 /** Собирает списки доступных значений для выпадающих фильтров из загруженных данных. */
@@ -52,6 +87,7 @@ export const buildFacets = (items: Item[]): FilterFacets => {
   const prunitNames = new Set<string>();
   const executors = new Set<string>();
   const sections = new Set<string>();
+  const racks = new Set<string>();
   let hasNoExecutor = false;
 
   for (const item of items) {
@@ -61,10 +97,12 @@ export const buildFacets = (items: Item[]): FilterFacets => {
     else hasNoExecutor = true;
     const section = getSection(item.wr_name);
     if (section) sections.add(section);
+    const rack = getRack(item.wr_name);
+    if (rack) racks.add(rack);
   }
 
   const byRu = (a: string, b: string) => a.localeCompare(b, 'ru');
-  const bySectionNum = (a: string, b: string) => {
+  const byNum = (a: string, b: string) => {
     const na = Number(a);
     const nb = Number(b);
     if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
@@ -76,7 +114,8 @@ export const buildFacets = (items: Item[]): FilterFacets => {
     prunitNames: [...prunitNames].sort(byRu),
     executors: [...executors].sort(byRu),
     hasNoExecutor,
-    sections: [...sections].sort(bySectionNum),
+    sections: [...sections].sort(byNum),
+    racks: [...racks].sort(byNum),
   };
 };
 
@@ -123,6 +162,7 @@ export const filterItems = (items: Item[], filters: FilterOptions): Item[] => {
   const executorSet = new Set(filters.executors);
   const prunitSet = new Set(filters.prunitNames);
   const sectionSet = new Set(filters.sections);
+  const rackSet = new Set(filters.racks);
   const fromKey = filters.updatedFrom ? toDateKey(filters.updatedFrom) : '';
   const toKey = filters.updatedTo ? toDateKey(filters.updatedTo) : '';
 
@@ -141,6 +181,8 @@ export const filterItems = (items: Item[], filters: FilterOptions): Item[] => {
     }
 
     if (sectionSet.size > 0 && !sectionSet.has(getSection(item.wr_name))) return false;
+
+    if (rackSet.size > 0 && !rackSet.has(getRack(item.wr_name))) return false;
 
     if (filters.expiration !== 'all') {
       const empty = isEmptyExpiration(item.expiration_date);
@@ -176,6 +218,7 @@ export const countActiveFilters = (f: FilterOptions): number => {
   if (f.prunitNames.length) n++;
   if (f.executors.length) n++;
   if (f.sections.length) n++;
+  if (f.racks.length) n++;
   if (f.expiration !== 'all') n++;
   if (f.reason !== 'all') n++;
   if (f.qtyMin !== null || f.qtyMax !== null) n++;
@@ -200,6 +243,7 @@ export const describeFilters = (f: FilterOptions): { label: string; value: strin
     });
   }
   if (f.sections.length) rows.push({ label: 'Секции', value: f.sections.join(', ') });
+  if (f.racks.length) rows.push({ label: 'Стеллажи', value: f.racks.join(', ') });
   if (f.expiration !== 'all') {
     rows.push({ label: 'Срок годности', value: f.expiration === 'with' ? 'только с СГ' : 'только без СГ' });
   }

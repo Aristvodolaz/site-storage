@@ -94,10 +94,29 @@ export const printReport = (items: Item[], meta: ReportMeta = {}): void => {
     <tbody>${body}</tbody>
     <tfoot><tr><td colspan="4">Итого</td><td class="num">${totalQuantity.toLocaleString('ru-RU')}</td><td colspan="6"></td></tr></tfoot>
   </table>
-  <script>
-    window.focus();
-    setTimeout(function () { window.print(); }, 300);
-  </script>
 </body></html>`);
   win.document.close();
+
+  // Ждём полной загрузки/раскладки документа перед печатью — с большими таблицами
+  // фиксированная пауза в 300мс могла срабатывать до завершения рендера, и печать
+  // тихо не запускалась (жалобы на реестры из более чем ~20 строк).
+  let printed = false;
+  const triggerPrint = () => {
+    if (printed) return;
+    printed = true;
+    try {
+      win.focus();
+      win.print();
+    } catch (error) {
+      console.error('Ошибка при печати отчёта:', error);
+    }
+  };
+
+  if (win.document.readyState === 'complete') {
+    triggerPrint();
+  } else {
+    win.addEventListener('load', triggerPrint);
+    // Подстраховка на случай, если событие load не сработает в некоторых браузерах
+    setTimeout(triggerPrint, 1000);
+  }
 };

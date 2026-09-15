@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { Item } from '@/types/item';
 import { format } from 'date-fns';
+import { getSection } from './filters';
 
 export interface ReportMeta {
   /** Заголовок отчёта */
@@ -29,7 +30,7 @@ export const exportToExcel = (items: Item[], meta: ReportMeta = {}, filename?: s
       'Общее кол-во': item.product_qnt,
       'Ячейка (ШК)': item.wr_shk,
       'Название ячейки': item.wr_name,
-      'Секция': (item.wr_name || '').split(/[-.]/)[0] || '',
+      'Секция': getSection(item.wr_name || ''),
       'ID склада': item.id_sklad,
       'ЕХ': item.prunit_name,
       'Состояние': item.condition_state,

@@ -25,12 +25,14 @@ const OPERATION_LABELS: Record<string, string> = {
   PLACE: 'Размещение',
   MOVE: 'Перемещение',
   PICK: 'Снятие',
+  INVENTORY: 'Инвентаризация',
 };
 
 const OPERATION_COLORS: Record<string, 'success' | 'info' | 'warning' | 'default'> = {
   PLACE: 'success',
   MOVE: 'info',
   PICK: 'warning',
+  INVENTORY: 'default',
 };
 
 // Интервал сдвига окна дат для пресетов «последние N» / «сегодня»
@@ -210,6 +212,7 @@ export const HistoryPage: React.FC = () => {
                 <MenuItem value="PLACE">Размещение</MenuItem>
                 <MenuItem value="MOVE">Перемещение</MenuItem>
                 <MenuItem value="PICK">Снятие</MenuItem>
+                <MenuItem value="INVENTORY">Инвентаризация</MenuItem>
               </TextField>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>

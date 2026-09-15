@@ -1,6 +1,6 @@
 // Типы истории складских операций
 
-export type StorageOperationType = 'PLACE' | 'MOVE' | 'PICK' | '';
+export type StorageOperationType = 'PLACE' | 'MOVE' | 'PICK' | 'INVENTORY' | '';
 
 export interface StorageOperation {
   id: number;

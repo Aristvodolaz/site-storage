@@ -4,10 +4,8 @@ import {
   GridColDef,
   GridRowsProp,
   GridSortModel,
-  GridFilterModel,
   GridToolbarContainer,
   GridToolbarExport,
-  GridToolbarFilterButton,
   GridToolbarDensitySelector,
   GridToolbarColumnsButton,
   GridPaginationModel,
@@ -16,21 +14,24 @@ import { Box, Chip, useTheme, useMediaQuery, Tooltip } from '@mui/material';
 import { Item } from '@/types/item';
 import { format, parseISO } from 'date-fns';
 import { ScrollIndicator } from './ScrollIndicator';
+import { naturalCompare } from '@/utils/filters';
 
 interface ItemsTableProps {
   items: Item[];
   loading?: boolean;
   onSortChange?: (model: GridSortModel) => void;
-  onFilterChange?: (model: GridFilterModel) => void;
   onPaginationChange?: (model: GridPaginationModel) => void;
 }
 
-// Кастомная панель инструментов
+// Кастомная панель инструментов.
+// Фильтр по колонкам намеренно не подключаем: он фильтровал только то, что видно
+// в таблице, но не влиял на экспорт/печать (которые используют фильтры из панели
+// "Поиск и фильтры") — из-за этого выгрузка "теряла" применённые в таблице фильтры.
+// Единый источник фильтрации — панель поиска слева.
 function CustomToolbar() {
   return (
     <GridToolbarContainer>
       <GridToolbarColumnsButton />
-      <GridToolbarFilterButton />
       <GridToolbarDensitySelector />
       <GridToolbarExport
         csvOptions={{
@@ -46,7 +47,6 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
   items,
   loading = false,
   onSortChange,
-  onFilterChange,
   onPaginationChange,
 }) => {
   const theme = useTheme();
@@ -104,7 +104,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         minWidth: 150,
         flex: isMobile ? 0 : 1,
         sortable: true,
-        filterable: true,
+        filterable: false,
         pinned: isMobile ? 'left' : false, // Закрепляем на мобильных
       },
       {
@@ -113,7 +113,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         width: baseWidths.article,
         minWidth: 80,
         sortable: true,
-        filterable: true,
+        filterable: false,
         pinned: isMobile ? 'left' : false,
       },
       {
@@ -122,7 +122,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         width: baseWidths.shk,
         minWidth: 100,
         sortable: true,
-        filterable: true,
+        filterable: false,
       },
       {
         field: 'quantity',
@@ -160,7 +160,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         width: baseWidths.wr_shk,
         minWidth: 80,
         sortable: true,
-        filterable: true,
+        filterable: false,
       },
       {
         field: 'wr_name',
@@ -168,7 +168,8 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         width: baseWidths.wr_name,
         minWidth: 120,
         sortable: true,
-        filterable: true,
+        filterable: false,
+        sortComparator: naturalCompare,
       },
       {
         field: 'id_sklad',
@@ -186,7 +187,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         width: baseWidths.prunit_name,
         minWidth: 60,
         sortable: true,
-        filterable: true,
+        filterable: false,
       },
       {
         field: 'condition_state',
@@ -194,7 +195,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         width: baseWidths.condition_state,
         minWidth: 90,
         sortable: true,
-        filterable: true,
+        filterable: false,
         renderCell: (params) => {
           const isDefective = params.value && params.value.toLowerCase().includes('некондиц');
           return (
@@ -213,7 +214,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         width: baseWidths.reason,
         minWidth: 120,
         sortable: true,
-        filterable: true,
+        filterable: false,
         renderCell: (params) => {
           const reason: string = params.value || '';
           const conditionState: string = params.row.condition_state || '';
@@ -252,7 +253,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         width: baseWidths.expiration,
         minWidth: 90,
         sortable: true,
-        filterable: true,
+        filterable: false,
       },
       {
         field: 'createDateFormatted',
@@ -260,7 +261,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         width: baseWidths.created,
         minWidth: 100,
         sortable: true,
-        filterable: true,
+        filterable: false,
       },
       {
         field: 'updateDateFormatted',
@@ -268,7 +269,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         width: baseWidths.updated,
         minWidth: 100,
         sortable: true,
-        filterable: true,
+        filterable: false,
       },
       {
         field: 'executor',
@@ -276,7 +277,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         width: baseWidths.executor,
         minWidth: 100,
         sortable: true,
-        filterable: true,
+        filterable: false,
       },
     ];
   }, [isMobile, isTablet]);
@@ -308,11 +309,11 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         onPaginationModelChange={handlePaginationChange}
         pageSizeOptions={[10, 20, 50, 100, 200]}
         
-        // Сортировка и фильтрация
+        // Сортировка
         sortingOrder={['desc', 'asc']}
         onSortModelChange={onSortChange}
-        onFilterModelChange={onFilterChange}
-        
+        disableColumnFilter
+
         // Начальное состояние
         initialState={{
           pagination: {
