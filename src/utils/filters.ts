@@ -38,6 +38,13 @@ export const getRack = (wrName: string): string => {
   return /^\d+$/.test(rack) ? rack.padStart(2, '0') : rack;
 };
 
+/** Название ячейки с зеро-паддингом числовых сегментов: "82-9-2" -> "82-09-2" (для читаемости и корректной сортировки). */
+export const formatCellName = (wrName: string): string =>
+  (wrName || '')
+    .split(/([-.])/)
+    .map((part) => (/^\d+$/.test(part) ? part.padStart(2, '0') : part))
+    .join('');
+
 /**
  * «естественное» сравнение строк вида "49-03-5" по числовым сегментам,
  * чтобы 9-... не оказывался после 82-... из-за посимвольного сравнения строк.

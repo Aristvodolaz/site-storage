@@ -14,7 +14,7 @@ import { Box, Chip, useTheme, useMediaQuery, Tooltip } from '@mui/material';
 import { Item } from '@/types/item';
 import { format, parseISO } from 'date-fns';
 import { ScrollIndicator } from './ScrollIndicator';
-import { naturalCompare } from '@/utils/filters';
+import { naturalCompare, formatCellName } from '@/utils/filters';
 
 interface ItemsTableProps {
   items: Item[];
@@ -170,6 +170,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         sortable: true,
         filterable: false,
         sortComparator: naturalCompare,
+        valueFormatter: (params) => formatCellName(params.value),
       },
       {
         field: 'id_sklad',

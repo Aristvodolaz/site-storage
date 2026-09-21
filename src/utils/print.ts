@@ -1,5 +1,6 @@
 import { Item } from '@/types/item';
 import { ReportMeta } from './export';
+import { formatCellName } from './filters';
 
 const esc = (v: unknown): string =>
   String(v ?? '')
@@ -44,7 +45,7 @@ export const printReport = (items: Item[], meta: ReportMeta = {}): void => {
         <td>${esc(i.shk)}</td>
         <td class="num">${esc(i.product_qnt)}</td>
         <td>${esc(i.prunit_name)}</td>
-        <td>${esc(i.wr_name || i.wr_shk)}</td>
+        <td>${esc(formatCellName(i.wr_name) || i.wr_shk)}</td>
         <td>${esc(i.condition_state)}</td>
         <td>${esc(expirationText(i.expiration_date))}</td>
         <td>${esc(i.reason)}</td>

@@ -237,7 +237,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
                 options={facets.sections}
                 value={filters.sections}
                 onChange={(_, v) => set('sections', v)}
-                renderInput={(p) => <TextField {...p} label="Секции ячеек" />}
+                renderInput={(p) => <TextField {...p} label="Стеллажи" />}
                 limitTags={3}
               />
             </Grid>
@@ -249,7 +249,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
                 options={facets.racks}
                 value={filters.racks}
                 onChange={(_, v) => set('racks', v)}
-                renderInput={(p) => <TextField {...p} label="Стеллажи" />}
+                renderInput={(p) => <TextField {...p} label="Секции ячеек" />}
                 limitTags={3}
               />
             </Grid>

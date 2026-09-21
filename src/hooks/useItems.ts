@@ -12,6 +12,8 @@ export const useItems = (warehouse: number = 1383) => {
   } = useQuery({
     queryKey: ['items', warehouse],
     queryFn: () => StorageApi.getItems(100000, warehouse),
+    // Нулевые остатки (Кол-во ЕХ = 0) — мусорные строки, не показываем их нигде.
+    select: (data) => data.filter((item) => item.quantity !== 0),
     staleTime: 5 * 60 * 1000, // 5 минут
     refetchInterval: 5 * 60 * 1000, // Автообновление каждые 5 минут
     retry: 3,
