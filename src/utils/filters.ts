@@ -38,12 +38,21 @@ export const getRack = (wrName: string): string => {
   return /^\d+$/.test(rack) ? rack.padStart(2, '0') : rack;
 };
 
-/** Название ячейки с зеро-паддингом числовых сегментов: "82-9-2" -> "82-09-2" (для читаемости и корректной сортировки). */
-export const formatCellName = (wrName: string): string =>
-  (wrName || '')
+/**
+ * Название ячейки с зеро-паддингом первых двух сегментов: "7-8-93" -> "07-08-93".
+ * Дополняются до 2 цифр только секция и стеллаж (1-й и 2-й сегменты) — остальные не трогаем.
+ */
+export const formatCellName = (wrName: string): string => {
+  let valueIndex = 0;
+  return (wrName || '')
     .split(/([-.])/)
-    .map((part) => (/^\d+$/.test(part) ? part.padStart(2, '0') : part))
+    .map((part) => {
+      if (part === '-' || part === '.') return part;
+      valueIndex += 1;
+      return valueIndex <= 2 && /^\d+$/.test(part) ? part.padStart(2, '0') : part;
+    })
     .join('');
+};
 
 /**
  * «естественное» сравнение строк вида "49-03-5" по числовым сегментам,
