@@ -12,7 +12,7 @@ import {
 } from '@mui/x-data-grid';
 import { Box, Chip, useTheme, useMediaQuery, Tooltip } from '@mui/material';
 import { Item } from '@/types/item';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { ScrollIndicator } from './ScrollIndicator';
 import { naturalCompare, formatCellName } from '@/utils/filters';
 
@@ -22,6 +22,13 @@ interface ItemsTableProps {
   onSortChange?: (model: GridSortModel) => void;
   onPaginationChange?: (model: GridPaginationModel) => void;
 }
+
+// Некорректная/пустая дата в данных не должна ронять всю страницу (RangeError в date-fns).
+const safeFormatDate = (value?: string): string => {
+  if (!value) return '';
+  const date = parseISO(String(value));
+  return isValid(date) ? format(date, 'yyyy-MM-dd HH:mm') : String(value);
+};
 
 // Кастомная панель инструментов.
 // Фильтр по колонкам намеренно не подключаем: он фильтровал только то, что видно
@@ -64,11 +71,9 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
       id: item.id || index,
       ...item,
       // Форматируем даты для отображения
-      createDateFormatted: item.createDate ? 
-        format(parseISO(item.createDate), 'yyyy-MM-dd HH:mm') : '',
-      updateDateFormatted: item.updateDate ? 
-        format(parseISO(item.updateDate), 'yyyy-MM-dd HH:mm') : '',
-      expirationDateFormatted: item.expiration_date === '2999-01-01' 
+      createDateFormatted: safeFormatDate(item.createDate),
+      updateDateFormatted: safeFormatDate(item.updateDate),
+      expirationDateFormatted: item.expiration_date === '2999-01-01'
         ? 'СГ отсутствует' 
         : item.expiration_date || '',
     }));

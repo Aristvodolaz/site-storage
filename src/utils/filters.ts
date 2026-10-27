@@ -26,14 +26,15 @@ const isEmptyExpiration = (value?: string): boolean =>
 
 /** Секция ячейки — префикс названия до первого разделителя: "01-106-5" -> "01" (числовые секции дополняются нулём слева). */
 export const getSection = (wrName: string): string => {
-  const match = /^\s*([0-9A-Za-zА-Яа-я]+)\s*[-.]/.exec(wrName || '');
-  const section = match ? match[1] : (wrName || '').trim();
+  const name = String(wrName ?? '');
+  const match = /^\s*([0-9A-Za-zА-Яа-я]+)\s*[-.]/.exec(name);
+  const section = match ? match[1] : name.trim();
   return /^\d+$/.test(section) ? section.padStart(2, '0') : section;
 };
 
 /** Стеллаж ячейки — 2-й сегмент названия, между 1-м и 2-м разделителем: "01-106-5" -> "106" (числовые дополняются нулём слева). */
 export const getRack = (wrName: string): string => {
-  const parts = (wrName || '').trim().split(/[-.]/);
+  const parts = String(wrName ?? '').trim().split(/[-.]/);
   const rack = (parts[1] || '').trim();
   return /^\d+$/.test(rack) ? rack.padStart(2, '0') : rack;
 };
@@ -44,7 +45,7 @@ export const getRack = (wrName: string): string => {
  */
 export const formatCellName = (wrName: string): string => {
   let valueIndex = 0;
-  return (wrName || '')
+  return String(wrName ?? '')
     .split(/([-.])/)
     .map((part) => {
       if (part === '-' || part === '.') return part;
