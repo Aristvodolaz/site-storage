@@ -24,6 +24,8 @@ export interface StorageOperationsFilters {
   productId?: string;
   locationId?: string;
   executor?: string;
+  /** Склад (WR_House): операции, чьи ячейки относятся к этому складу */
+  id_sklad?: number;
   dateFrom: string;
   dateTo: string;
   limit?: number;

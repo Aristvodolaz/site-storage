@@ -203,6 +203,9 @@ export class HistoryApi {
 
       params.append('date_from', filters.dateFrom);
       params.append('date_to', filters.dateTo);
+      if (filters.id_sklad) {
+        params.append('id_sklad', String(filters.id_sklad));
+      }
       params.append('limit', String(filters.limit ?? 100));
       params.append('offset', String(filters.offset ?? 0));
 

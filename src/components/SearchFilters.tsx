@@ -29,6 +29,7 @@ import {
   FileDownload as ExcelIcon,
 } from '@mui/icons-material';
 import { FilterOptions, FilterType, TriState } from '@/types/item';
+import { WAREHOUSES } from '@/utils/warehouses';
 import {
   filterTypeLabel,
   countActiveFilters,
@@ -173,8 +174,9 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
               onChange={(e: SelectChangeEvent<number>) =>
                 set('warehouse', e.target.value as number)}
             >
-              <MenuItem value={1383}>Склад 1383</MenuItem>
-              <MenuItem value={85}>Склад 85</MenuItem>
+              {WAREHOUSES.map((w) => (
+                <MenuItem key={w} value={Number(w)}>Склад {w}</MenuItem>
+              ))}
             </Select>
           </FormControl>
         </Grid>

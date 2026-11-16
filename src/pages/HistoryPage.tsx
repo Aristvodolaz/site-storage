@@ -17,6 +17,7 @@ import { subHours } from 'date-fns';
 
 import { TimeRangeSelector, getDateRangeFromPreset } from '@/components/reports/TimeRangeSelector';
 import { useStorageHistory } from '@/hooks/useStorageHistory';
+import { WAREHOUSES } from '@/utils/warehouses';
 import { TimeRangePreset } from '@/types/reports';
 import { StorageOperationType } from '@/types/history';
 import { formatDateTime } from '@/utils/formatters';
@@ -46,6 +47,7 @@ export const HistoryPage: React.FC = () => {
   const [productId, setProductId] = useState('');
   const [locationId, setLocationId] = useState('');
   const [executor, setExecutor] = useState('');
+  const [warehouse, setWarehouse] = useState('');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
 
@@ -74,9 +76,10 @@ export const HistoryPage: React.FC = () => {
     productId: productId.trim() || undefined,
     locationId: locationId.trim() || undefined,
     executor: executor.trim() || undefined,
+    id_sklad: warehouse ? Number(warehouse) : undefined,
     limit: pageSize,
     offset: page * pageSize,
-  }), [dateFrom, dateTo, operationType, productId, locationId, executor, page, pageSize]);
+  }), [dateFrom, dateTo, operationType, productId, locationId, executor, warehouse, page, pageSize]);
 
   const { data, isLoading, isFetching, error, refetch, dataUpdatedAt } = useStorageHistory(filters);
 
@@ -238,6 +241,24 @@ export const HistoryPage: React.FC = () => {
                   setPage(0);
                 }}
               />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="Склад"
+                value={warehouse}
+                onChange={(e) => {
+                  setWarehouse(e.target.value);
+                  setPage(0);
+                }}
+              >
+                <MenuItem value="">Все склады</MenuItem>
+                {WAREHOUSES.map((w) => (
+                  <MenuItem key={w} value={w}>Склад {w}</MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
