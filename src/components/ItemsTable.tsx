@@ -1,26 +1,15 @@
-import React, { useMemo, useState } from 'react';
-import {
-  DataGrid,
-  GridColDef,
-  GridRowsProp,
-  GridSortModel,
-  GridToolbarContainer,
-  GridToolbarExport,
-  GridToolbarDensitySelector,
-  GridToolbarColumnsButton,
-  GridPaginationModel,
-} from '@mui/x-data-grid';
+import { useMemo } from 'react';
+import type { GridColDef } from '@mui/x-data-grid';
 import { Box, Chip, useTheme, useMediaQuery, Tooltip } from '@mui/material';
 import { Item } from '@/types/item';
 import { format, parseISO, isValid } from 'date-fns';
 import { ScrollIndicator } from './ScrollIndicator';
+import { DataTable } from './DataTable';
 import { naturalCompare, formatCellName } from '@/utils/filters';
 
 interface ItemsTableProps {
   items: Item[];
   loading?: boolean;
-  onSortChange?: (model: GridSortModel) => void;
-  onPaginationChange?: (model: GridPaginationModel) => void;
 }
 
 // Некорректная/пустая дата в данных не должна ронять всю страницу (RangeError в date-fns).
@@ -30,43 +19,13 @@ const safeFormatDate = (value?: string): string => {
   return isValid(date) ? format(date, 'yyyy-MM-dd HH:mm') : String(value);
 };
 
-// Кастомная панель инструментов.
-// Фильтр по колонкам намеренно не подключаем: он фильтровал только то, что видно
-// в таблице, но не влиял на экспорт/печать (которые используют фильтры из панели
-// "Поиск и фильтры") — из-за этого выгрузка "теряла" применённые в таблице фильтры.
-// Единый источник фильтрации — панель поиска слева.
-function CustomToolbar() {
-  return (
-    <GridToolbarContainer>
-      <GridToolbarColumnsButton />
-      <GridToolbarDensitySelector />
-      <GridToolbarExport
-        csvOptions={{
-          fileName: 'inventory_report',
-          utf8WithBom: true,
-        }}
-      />
-    </GridToolbarContainer>
-  );
-}
-
-export const ItemsTable: React.FC<ItemsTableProps> = ({
-  items,
-  loading = false,
-  onSortChange,
-  onPaginationChange,
-}) => {
+export const ItemsTable = ({ items, loading = false }: ItemsTableProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
   
-  // Состояние пагинации
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
-    page: 0,
-    pageSize: 20,
-  });
   // Преобразуем данные для DataGrid
-  const rows: GridRowsProp = useMemo(() => {
+  const rows = useMemo(() => {
     return items.map((item, index) => ({
       id: item.id || index,
       ...item,
@@ -110,7 +69,6 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         flex: isMobile ? 0 : 1,
         sortable: true,
         filterable: false,
-        pinned: isMobile ? 'left' : false, // Закрепляем на мобильных
       },
       {
         field: 'article',
@@ -119,7 +77,6 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
         minWidth: 80,
         sortable: true,
         filterable: false,
-        pinned: isMobile ? 'left' : false,
       },
       {
         field: 'shk',
@@ -288,172 +245,23 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
     ];
   }, [isMobile, isTablet]);
 
-  // Обработчик изменения пагинации
-  const handlePaginationChange = (model: GridPaginationModel) => {
-    setPaginationModel(model);
-    onPaginationChange?.(model);
-  };
 
   return (
-    <Box sx={{ 
-      height: isMobile ? '500px' : '600px',
-      minHeight: '400px',
-      width: '100%',
-      '& .MuiDataGrid-root': {
-        border: 'none',
-      }
-    }}>
-      <ScrollIndicator showHint={!isMobile}>
-        <DataGrid
+    <ScrollIndicator showHint={!isMobile}>
+      <DataTable
         rows={rows}
         columns={columns}
+        getRowId={(r) => r.id}
         loading={loading}
-        
-        // Пагинация
-        pagination
-        paginationModel={paginationModel}
-        onPaginationModelChange={handlePaginationChange}
+        storageKey="items"
+        checkboxSelection
+        exportName="inventory_report"
+        defaultSort={[{ field: 'name', sort: 'asc' }]}
+        hiddenColumns={isMobile ? ['nested_quantity', 'id_sklad', 'reason', 'createDateFormatted', 'updateDateFormatted'] : []}
+        pageSize={20}
         pageSizeOptions={[10, 20, 50, 100, 200]}
-        
-        // Сортировка
-        sortingOrder={['desc', 'asc']}
-        onSortModelChange={onSortChange}
-        disableColumnFilter
-
-        // Начальное состояние
-        initialState={{
-          pagination: {
-            paginationModel: { pageSize: 20, page: 0 },
-          },
-          sorting: {
-            sortModel: [{ field: 'name', sort: 'asc' }],
-          },
-          columns: {
-            columnVisibilityModel: {
-              // Скрываем некоторые колонки на мобильных
-              ...(isMobile && {
-                nested_quantity: false,
-                id_sklad: false,
-                reason: false,
-                createDateFormatted: false,
-                updateDateFormatted: false,
-              }),
-            },
-          },
-        }}
-        
-        // Компоненты
-        slots={{
-          toolbar: CustomToolbar,
-        }}
-        
-        // Настройки взаимодействия
-        disableRowSelectionOnClick
-        checkboxSelection={false}
-        disableColumnSelector={isMobile}
-        
-        // Горизонтальный скролл и адаптивность
-        scrollbarSize={17}
-        
-        sx={{
-          // Горизонтальный скролл
-          '& .MuiDataGrid-main': {
-            '& .MuiDataGrid-columnHeaders': {
-              borderBottom: '2px solid',
-              borderBottomColor: 'primary.light',
-              backgroundColor: 'action.selected',
-              minHeight: '56px !important',
-            },
-            '& .MuiDataGrid-columnHeader': {
-              fontSize: '0.875rem',
-              fontWeight: 600,
-            },
-          },
-          
-          // Строки таблицы
-          '& .MuiDataGrid-row': {
-            '&:hover': {
-              backgroundColor: 'action.hover',
-            },
-            '&:nth-of-type(even)': {
-              backgroundColor: 'action.hover',
-            },
-          },
-
-          // Ячейки
-          '& .MuiDataGrid-cell': {
-            borderRight: '1px solid',
-            borderRightColor: 'divider',
-            fontSize: '0.875rem',
-            '&:focus': {
-              outline: 'none',
-            },
-          },
-          
-          // Закрепленные колонки
-          '& .MuiDataGrid-cell--pinnedLeft': {
-            backgroundColor: 'background.paper',
-            borderRight: '2px solid',
-            borderColor: 'primary.light',
-          },
-          '& .MuiDataGrid-columnHeader--pinnedLeft': {
-            backgroundColor: 'action.selected',
-            borderRight: '2px solid',
-            borderRightColor: 'primary.light',
-          },
-
-          // Панель инструментов
-          '& .MuiDataGrid-toolbarContainer': {
-            padding: '8px 16px',
-            borderBottom: '1px solid',
-            borderBottomColor: 'divider',
-            backgroundColor: 'background.default',
-            minHeight: '56px',
-          },
-
-          // Пагинация
-          '& .MuiDataGrid-footerContainer': {
-            borderTop: '1px solid',
-            borderTopColor: 'divider',
-            backgroundColor: 'background.default',
-            minHeight: '56px',
-          },
-          
-          // Скроллбары
-          '& .MuiDataGrid-scrollbar--horizontal': {
-            '& .MuiDataGrid-scrollbar-thumb': {
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              borderRadius: '4px',
-            },
-          },
-          '& .MuiDataGrid-scrollbar--vertical': {
-            '& .MuiDataGrid-scrollbar-thumb': {
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              borderRadius: '4px',
-            },
-          },
-          
-          // Адаптивность для мобильных
-          ...(isMobile && {
-            '& .MuiDataGrid-columnHeaders': {
-              fontSize: '0.75rem',
-            },
-            '& .MuiDataGrid-cell': {
-              fontSize: '0.75rem',
-              padding: '4px 8px',
-            },
-            '& .MuiDataGrid-toolbarContainer': {
-              padding: '4px 8px',
-              flexWrap: 'wrap',
-              '& .MuiButton-root': {
-                fontSize: '0.75rem',
-                padding: '4px 8px',
-              },
-            },
-          }),
-        }}
-        />
-      </ScrollIndicator>
-    </Box>
+        height={isMobile ? 500 : 600}
+      />
+    </ScrollIndicator>
   );
 };

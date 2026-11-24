@@ -2,7 +2,7 @@ import React from 'react';
 import { Paper, Typography, Chip, Box } from '@mui/material';
 import { OperationLogDetail } from '@/types/reports';
 import { format } from 'date-fns';
-import { ReportTable, ReportColumn } from './ReportTable';
+import { DataTable, ReportColumn, toGridColumns } from '../DataTable';
 
 interface DetailsTableProps {
   data: OperationLogDetail[];
@@ -114,6 +114,8 @@ const columns: ReportColumn<OperationLogDetail>[] = [
   },
 ];
 
+const gridColumns = toGridColumns(columns);
+
 export const DetailsTable: React.FC<DetailsTableProps> = ({ data }) => (
   <Paper sx={{ p: 2 }}>
     <Typography variant="h6" gutterBottom>
@@ -124,12 +126,14 @@ export const DetailsTable: React.FC<DetailsTableProps> = ({ data }) => (
         КТО, ЧТО и ГДЕ — полная информация о каждой операции (до 1000 последних записей)
       </Typography>
     </Box>
-    <ReportTable
-      columns={columns}
+    <DataTable
+      columns={gridColumns}
       rows={data}
-      rowKey={(r) => r.id}
-      defaultSortKey="time"
-      maxHeight={600}
+      getRowId={(r) => r.id}
+      storageKey="reports-details"
+      exportName="operation-details"
+      defaultSort={[{ field: 'time', sort: 'desc' }]}
+      height={600}
       emptyText="Нет операций за выбранный период"
     />
   </Paper>

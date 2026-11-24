@@ -8,11 +8,10 @@ import {
   MenuItem,
   Grid,
   Alert,
-  CircularProgress,
   Chip,
-  TablePagination,
 } from '@mui/material';
-import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import { DataTable } from '@/components/DataTable';
 import { subHours } from 'date-fns';
 
 import { TimeRangeSelector, getDateRangeFromPreset } from '@/components/reports/TimeRangeSelector';
@@ -277,42 +276,28 @@ export const HistoryPage: React.FC = () => {
           </Alert>
         )}
 
-        <Paper sx={{ height: 600, width: '100%' }}>
-          {isLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <>
-              <DataGrid
-                rows={rows}
-                columns={columns}
-                getRowId={(row) => row.id}
-                hideFooter
-                disableRowSelectionOnClick
-                sx={{ border: 0, height: 'calc(100% - 52px)' }}
-                localeText={{
-                  noRowsLabel: 'Нет операций за выбранный период',
-                }}
-              />
-              <TablePagination
-                component="div"
-                count={total}
-                page={page}
-                onPageChange={(_, newPage) => setPage(newPage)}
-                rowsPerPage={pageSize}
-                onRowsPerPageChange={(e) => {
-                  setPageSize(parseInt(e.target.value, 10));
-                  setPage(0);
-                }}
-                rowsPerPageOptions={[25, 50, 100]}
-                labelRowsPerPage="Строк на странице:"
-                labelDisplayedRows={({ from, to, count }) =>
-                  `${from}–${to} из ${count !== -1 ? count : `более чем ${to}`}`
-                }
-              />
-            </>
-          )}
+        <Paper sx={{ p: 2 }}>
+          <DataTable
+            rows={rows}
+            columns={columns}
+            getRowId={(row) => row.id}
+            loading={isLoading}
+            error={error ? (error as Error).message || 'Не удалось загрузить историю операций' : null}
+            storageKey="history"
+            checkboxSelection
+            exportName="history"
+            emptyText="Нет операций за выбранный период"
+            caption={`Найдено операций: ${total.toLocaleString('ru-RU')}`}
+            height={600}
+            server={{
+              rowCount: total,
+              paginationModel: { page, pageSize },
+              onPaginationModelChange: (m) => {
+                setPage(m.page);
+                setPageSize(m.pageSize);
+              },
+            }}
+          />
         </Paper>
       </Container>
     </Box>

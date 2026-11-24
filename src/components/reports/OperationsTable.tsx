@@ -1,7 +1,7 @@
 import React from 'react';
 import { Paper, Typography, Chip, Box } from '@mui/material';
 import { GroupedDataByEndpoint } from '@/types/reports';
-import { ReportTable, ReportColumn } from './ReportTable';
+import { DataTable, ReportColumn, toGridColumns } from '../DataTable';
 
 interface OperationsTableProps {
   data: GroupedDataByEndpoint[];
@@ -52,6 +52,8 @@ const columns: ReportColumn<GroupedDataByEndpoint>[] = [
   { key: 'users', label: 'Пользователей', align: 'right', value: (r) => r.unique_executors },
 ];
 
+const gridColumns = toGridColumns(columns);
+
 export const OperationsTable: React.FC<OperationsTableProps> = ({ data }) => {
   // Топ-20 по количеству; сортировка по любой колонке — на клик по заголовку
   const top = [...data].sort((a, b) => b.total_count - a.total_count).slice(0, 20);
@@ -66,11 +68,14 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({ data }) => {
           Топ-20 самых частых операций
         </Typography>
       </Box>
-      <ReportTable
-        columns={columns}
+      <DataTable
+        columns={gridColumns}
         rows={top}
-        rowKey={(r) => r.endpoint}
-        defaultSortKey="total"
+        getRowId={(r) => r.endpoint}
+        storageKey="reports-operations"
+        exportName="operations"
+        defaultSort={[{ field: 'total', sort: 'desc' }]}
+        height={420}
         emptyText="Нет данных для отображения. Выберите другой период времени."
       />
     </Paper>

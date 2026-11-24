@@ -3,7 +3,7 @@ import { Paper, Typography, Chip, Box, useTheme } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { GroupedDataByExecutor } from '@/types/reports';
 import { chartStyle, seriesColors } from '@/theme';
-import { ReportTable, ReportColumn } from './ReportTable';
+import { DataTable, ReportColumn, toGridColumns } from '../DataTable';
 
 interface UsersTableProps {
   data: GroupedDataByExecutor[];
@@ -56,6 +56,8 @@ const columns: ReportColumn<GroupedDataByExecutor>[] = [
   { key: 'time', label: 'Ср. время', align: 'right', value: (r) => r.avg_execution_time, render: (r) => `${r.avg_execution_time} ms` },
   { key: 'ips', label: 'IP адресов', align: 'right', value: (r) => r.unique_ips },
 ];
+
+const gridColumns = toGridColumns(columns);
 
 export const UsersTable: React.FC<UsersTableProps> = ({ data }) => {
   const theme = useTheme();
@@ -110,11 +112,14 @@ export const UsersTable: React.FC<UsersTableProps> = ({ data }) => {
             Детальная статистика по пользователям API. Нажмите на заголовок, чтобы отсортировать.
           </Typography>
         </Box>
-        <ReportTable
-          columns={columns}
+        <DataTable
+          columns={gridColumns}
           rows={sorted}
-          rowKey={(r) => r.executor ?? 'none'}
-          defaultSortKey="total"
+          getRowId={(r) => r.executor ?? 'none'}
+          storageKey="reports-users"
+          exportName="users"
+          defaultSort={[{ field: 'total', sort: 'desc' }]}
+          height={420}
           emptyText="Нет данных для отображения. Выберите другой период времени."
         />
       </Paper>

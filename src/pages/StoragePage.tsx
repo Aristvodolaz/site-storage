@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Box, Container, Alert, Snackbar } from '@mui/material';
-import { GridSortModel, GridPaginationModel } from '@mui/x-data-grid';
 
 import { SearchFilters } from '@/components/SearchFilters';
 import { ItemsTable } from '@/components/ItemsTable';
@@ -106,8 +105,6 @@ export const StoragePage: React.FC<StoragePageProps> = ({ onDataChange }) => {
     handlePrint,
   ]);
 
-  const handleSortChange = (model: GridSortModel) => void model;
-  const handlePaginationChange = (model: GridPaginationModel) => void model;
   const handleSnackbarClose = () => setSnackbar((p) => ({ ...p, open: false }));
 
   return (
@@ -133,8 +130,6 @@ export const StoragePage: React.FC<StoragePageProps> = ({ onDataChange }) => {
         <ItemsTable
           items={filteredItems}
           loading={isLoading}
-          onSortChange={handleSortChange}
-          onPaginationChange={handlePaginationChange}
         />
       </Container>
 

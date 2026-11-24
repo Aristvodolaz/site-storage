@@ -3,7 +3,7 @@ import { Paper, Typography, Box, Alert, CircularProgress, useTheme } from '@mui/
 import { useExecutorOutput } from '@/hooks/useReports';
 import { useWarehouse } from '@/hooks/useWarehouse';
 import type { ExecutorOutputRow } from '@/types/reports';
-import { ReportTable, ReportColumn } from './ReportTable';
+import { DataTable, ReportColumn, toGridColumns } from '../DataTable';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { chartStyle, seriesColors } from '@/theme';
 
@@ -85,8 +85,13 @@ export const ExecutorOutputTable: React.FC<ExecutorOutputTableProps> = ({ dateFr
     [people],
   );
 
-  const personColumns = useMemo(() => buildColumns('Сотрудник'), []);
-  const systemColumns = useMemo(() => buildColumns('Источник'), []);
+  const personColumns = useMemo(() => toGridColumns(buildColumns('Сотрудник')), []);
+  const systemColumns = useMemo(() => toGridColumns(buildColumns('Источник')), []);
+  // Итоги по сотрудникам: подпись над таблицей (бесплатная DataGrid не умеет строку итогов)
+  const totals = sumFooter(people);
+  const totalsCaption = people.length > 0
+    ? `Итого: ${totals.total} · Приход ${totals.PLACE} · Расход ${totals.PICK} · Инвент ${totals.INVENTORY} · Перемещение ${totals.MOVE}`
+    : undefined;
 
   if (isLoading) {
     return (
@@ -138,12 +143,15 @@ export const ExecutorOutputTable: React.FC<ExecutorOutputTableProps> = ({ dateFr
             </ResponsiveContainer>
           </Box>
         )}
-        <ReportTable
+        <DataTable
           columns={personColumns}
           rows={people}
-          rowKey={(r) => r.name}
-          defaultSortKey="total"
-          footer={people.length > 0 ? sumFooter(people) : undefined}
+          getRowId={(r) => r.name}
+          storageKey="reports-executor"
+          exportName="executor-output"
+          defaultSort={[{ field: 'total', sort: 'desc' }]}
+          caption={totalsCaption}
+          height={460}
           emptyText="Нет операций с исполнителем за выбранный период"
         />
       </Paper>
@@ -158,7 +166,14 @@ export const ExecutorOutputTable: React.FC<ExecutorOutputTableProps> = ({ dateFr
               Операции без исполнителя, отдельно от выработки сотрудников
             </Typography>
           </Box>
-          <ReportTable columns={systemColumns} rows={system} rowKey={(r) => r.name || 'system'} />
+          <DataTable
+            columns={systemColumns}
+            rows={system}
+            getRowId={(r) => r.name || 'system'}
+            storageKey="reports-executor-system"
+            exportName="executor-system"
+            height={240}
+          />
         </Paper>
       )}
     </Box>
