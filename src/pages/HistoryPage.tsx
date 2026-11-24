@@ -36,8 +36,22 @@ const OPERATION_COLORS: Record<string, 'success' | 'info' | 'warning' | 'default
   INVENTORY: 'default',
 };
 
-// Интервал сдвига окна дат для пресетов «последние N» / «сегодня»
-const LIVE_WINDOW_MS = 10_000;
+// Окно дат сдвигаем раз в минуту, а не каждые 10 сек: иначе каждый тик создаёт новый
+// запрос, старые копятся и сервер не успевает ответить (таймауты)
+const LIVE_WINDOW_MS = 60_000;
+
+const floorToMinute = (iso: string) => {
+  const d = new Date(iso);
+  d.setSeconds(0, 0);
+  return d.toISOString();
+};
+
+// Конец окна округляем вверх до минуты, чтобы текущая минута попадала в выборку
+const ceilToMinute = (iso: string) => {
+  const d = new Date(iso);
+  d.setSeconds(0, 0);
+  return new Date(d.getTime() + 60_000).toISOString();
+};
 
 export const HistoryPage: React.FC = () => {
   const [preset, setPreset] = useState<TimeRangePreset>('last24h');
@@ -56,8 +70,8 @@ export const HistoryPage: React.FC = () => {
     if (preset === 'custom' || preset === 'yesterday') return;
     const range = getDateRangeFromPreset(preset);
     if (!range.from || !range.to) return;
-    setDateFrom(range.from);
-    setDateTo(range.to);
+    setDateFrom(floorToMinute(range.from));
+    setDateTo(ceilToMinute(range.to));
   };
 
   useEffect(() => {

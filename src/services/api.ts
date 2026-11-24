@@ -40,8 +40,10 @@ export class StorageApi {
    */
   static async getItems(limit: number = 50000, idSklad: number = 1383): Promise<Item[]> {
     try {
+      // Весь склад одним ответом: тяжелый запрос, даем больше времени, чем общие 10 сек
       const response: AxiosResponse<ApiResponse<Item>> = await apiClient.get(
-        `/api/storage/all?limit=${limit}&id_sklad=${idSklad}`
+        `/api/storage/all?limit=${limit}&id_sklad=${idSklad}`,
+        { timeout: 30000 }
       );
 
       if (response.data?.data?.items) {
@@ -181,6 +183,10 @@ export class ReportsApi {
         params.append('include_details', 'true');
       }
 
+      if (filters.id_sklad) {
+        params.append('id_sklad', String(filters.id_sklad));
+      }
+
       const response: AxiosResponse<ReportApiResponse> = await apiClient.get(
         `/api/logs/report?${params.toString()}`
       );
@@ -222,8 +228,10 @@ export class HistoryApi {
         params.append('executor', filters.executor);
       }
 
+      // История тяжелее остальных запросов: даем больше времени, чем общие 10 сек
       const response: AxiosResponse<StorageOperationsResponse> = await apiClient.get(
-        `/api/storage/operations?${params.toString()}`
+        `/api/storage/operations?${params.toString()}`,
+        { timeout: 30000 }
       );
 
       return response.data;

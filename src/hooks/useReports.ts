@@ -15,6 +15,7 @@ export const useExecutorOutput = (dateFrom: string, dateTo: string, warehouse: n
 // Hook для получения отчетов по операциям
 export const useReports = (filters: ReportFilters) => {
   return useQuery({
+    // filters содержит id_sklad, поэтому смена склада даёт отдельный кэш
     queryKey: ['reports', filters],
     queryFn: async () => {
       const response = await ReportsApi.getReport(filters);

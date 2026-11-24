@@ -10,6 +10,8 @@ export const useStorageHistory = (filters: StorageOperationsFilters) => {
     queryKey: ['storage-history', filters],
     queryFn: async () => HistoryApi.getOperations(filters),
     staleTime: 0,
+    // Таймаут не повторяем 3 раза (глобальный default): повтор только усиливает нагрузку на сервер
+    retry: 1,
     // окно дат сдвигается каждые 10 сек, без этого таблица мигает спиннером на каждом обновлении
     placeholderData: keepPreviousData,
     refetchInterval: LIVE_REFETCH_MS,

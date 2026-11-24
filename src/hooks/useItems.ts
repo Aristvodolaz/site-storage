@@ -1,5 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { StorageApi } from '@/services/api';
+import type { Item } from '@/types/item';
+
+// Нулевые остатки (Кол-во ЕХ = 0) — мусорные строки, не показываем их нигде.
+// Вынесено из хука, чтобы select не пересоздавался на каждом рендере.
+const dropZeroQuantity = (data: Item[]) => data.filter((item) => item.quantity !== 0);
 
 export const useItems = (warehouse: number = 1383) => {
   const queryClient = useQueryClient();
@@ -12,12 +17,11 @@ export const useItems = (warehouse: number = 1383) => {
   } = useQuery({
     queryKey: ['items', warehouse],
     queryFn: () => StorageApi.getItems(100000, warehouse),
-    // Нулевые остатки (Кол-во ЕХ = 0) — мусорные строки, не показываем их нигде.
-    select: (data) => data.filter((item) => item.quantity !== 0),
+    select: dropZeroQuantity,
     staleTime: 5 * 60 * 1000, // 5 минут
     refetchInterval: 5 * 60 * 1000, // Автообновление каждые 5 минут
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    // Большой ответ: повтор при таймауте усиливает нагрузку, один повтор достаточен
+    retry: 1,
   });
 
   const invalidateItems = () => {

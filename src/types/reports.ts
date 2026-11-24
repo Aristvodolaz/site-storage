@@ -125,6 +125,8 @@ export interface ReportFilters {
   executor?: string;
   endpoint?: string;
   includeDetails?: boolean;
+  /** Склад из шапки: фильтрует сводку, графики, таблицы и детали */
+  id_sklad?: number;
 }
 
 export type TimeRangePreset = 'last24h' | 'last7d' | 'last30d' | 'today' | 'yesterday' | 'custom';

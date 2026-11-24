@@ -22,6 +22,7 @@ import { ExecutorOutputTable } from '@/components/reports/ExecutorOutputTable';
 import { DetailsTable } from '@/components/reports/DetailsTable';
 
 import { useReports } from '@/hooks/useReports';
+import { useWarehouse } from '@/hooks/useWarehouse';
 import { TimeRangePreset, GroupByType } from '@/types/reports';
 import type { 
   GroupedDataByTime, 
@@ -35,6 +36,7 @@ export const ReportsPage: React.FC = () => {
   const [dateFrom, setDateFrom] = useState(subHours(new Date(), 24).toISOString());
   const [dateTo, setDateTo] = useState(new Date().toISOString());
   const [includeDetails, setIncludeDetails] = useState(false);
+  const { warehouse } = useWarehouse();
 
   // Определяем group_by в зависимости от активной вкладки
   const getGroupBy = (): GroupByType => {
@@ -60,6 +62,7 @@ export const ReportsPage: React.FC = () => {
     groupBy: getGroupBy(),
     includeDetails: activeTab === 3 ? true : includeDetails,
     endpoint: getEndpointFilter(),
+    id_sklad: warehouse,
   });
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -124,8 +127,7 @@ export const ReportsPage: React.FC = () => {
           <>
             {/* Сводка */}
             <Alert severity="info" sx={{ mb: 2 }}>
-              Склад из шапки влияет на остатки, историю и выработку по сотрудникам. Сводка и таблицы логов API
-              считаются по всем складам: в логах нет привязки к складу.
+              Отчет по складу {warehouse} из шапки: сводка, графики, операции и пользователи.
             </Alert>
             <ReportSummary summary={reportData.summary} />
 
