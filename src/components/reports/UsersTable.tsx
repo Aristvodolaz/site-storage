@@ -1,61 +1,73 @@
 import React from 'react';
-import {
-  Paper,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  Box,
-} from '@mui/material';
+import { Paper, Typography, Chip, Box } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { GroupedDataByExecutor } from '@/types/reports';
+import { ReportTable, ReportColumn } from './ReportTable';
 
 interface UsersTableProps {
   data: GroupedDataByExecutor[];
 }
 
 const COLORS = ['#1976d2', '#2e7d32', '#ed6c02', '#9c27b0', '#d32f2f', '#0288d1', '#7b1fa2', '#c2185b'];
+const NO_EXECUTOR_LABEL = 'Без исполнителя (системные)';
+
+// Пустой исполнитель в логах — это системные запросы, а не «null»
+const executorName = (e: string | null | undefined) => (e?.trim() ? e.trim() : NO_EXECUTOR_LABEL);
+
+const successColor = (rate: number): 'success' | 'warning' | 'error' => {
+  if (rate >= 95) return 'success';
+  if (rate >= 80) return 'warning';
+  return 'error';
+};
+
+const columns: ReportColumn<GroupedDataByExecutor>[] = [
+  {
+    key: 'executor',
+    label: 'Пользователь',
+    value: (r) => executorName(r.executor),
+    render: (r) => (
+      <Typography variant="body2" fontWeight="medium" color={r.executor?.trim() ? 'text.primary' : 'text.secondary'}>
+        {executorName(r.executor)}
+      </Typography>
+    ),
+  },
+  { key: 'total', label: 'Всего операций', align: 'right', value: (r) => r.total_count },
+  {
+    key: 'success',
+    label: 'Успешно',
+    align: 'right',
+    value: (r) => r.success_count,
+    render: (r) => <Typography component="span" variant="body2" color="success.main">{r.success_count.toLocaleString('ru-RU')}</Typography>,
+  },
+  {
+    key: 'error',
+    label: 'Ошибки',
+    align: 'right',
+    value: (r) => r.error_count,
+    render: (r) => <Typography component="span" variant="body2" color="error.main">{r.error_count.toLocaleString('ru-RU')}</Typography>,
+  },
+  {
+    key: 'rate',
+    label: 'Success Rate',
+    align: 'center',
+    value: (r) => parseFloat(r.success_rate),
+    render: (r) => <Chip label={`${r.success_rate}%`} size="small" color={successColor(parseFloat(r.success_rate))} />,
+  },
+  { key: 'time', label: 'Ср. время', align: 'right', value: (r) => r.avg_execution_time, render: (r) => `${r.avg_execution_time} ms` },
+  { key: 'ips', label: 'IP адресов', align: 'right', value: (r) => r.unique_ips },
+];
 
 export const UsersTable: React.FC<UsersTableProps> = ({ data }) => {
-  // Проверка на пустые данные
-  if (!data || data.length === 0) {
-    return (
-      <Paper sx={{ p: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Пользователи (КТО делал)
-        </Typography>
-        <Box sx={{ py: 4, textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            Нет данных для отображения. Выберите другой период времени.
-          </Typography>
-        </Box>
-      </Paper>
-    );
-  }
+  const sorted = [...data].sort((a, b) => b.total_count - a.total_count);
 
-  // Сортировка по количеству операций
-  const sortedData = [...data].sort((a, b) => b.total_count - a.total_count);
-
-  // Данные для pie chart (топ-8 пользователей)
-  const pieData = sortedData.slice(0, 8).map((item) => ({
-    name: item.executor,
+  // Топ-8 для круговой диаграммы; остальные — в таблице
+  const pieData = sorted.slice(0, 8).map((item) => ({
+    name: executorName(item.executor),
     value: item.total_count,
   }));
 
-  const getSuccessRateColor = (rate: string): 'success' | 'warning' | 'error' => {
-    const rateNum = parseFloat(rate);
-    if (rateNum >= 95) return 'success';
-    if (rateNum >= 80) return 'warning';
-    return 'error';
-  };
-
   return (
     <Box>
-      {/* Pie Chart */}
       {pieData.length > 0 && (
         <Paper sx={{ p: 2, mb: 2 }}>
           <Typography variant="h6" gutterBottom>
@@ -70,7 +82,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({ data }) => {
                 labelLine={false}
                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
                 outerRadius={100}
-                fill="#8884d8"
                 dataKey="value"
               >
                 {pieData.map((_, index) => (
@@ -84,57 +95,22 @@ export const UsersTable: React.FC<UsersTableProps> = ({ data }) => {
         </Paper>
       )}
 
-      {/* Таблица пользователей */}
       <Paper sx={{ p: 2 }}>
         <Typography variant="h6" gutterBottom>
           Пользователи (КТО делал)
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Детальная статистика по пользователям
-        </Typography>
-
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell><strong>Пользователь</strong></TableCell>
-                <TableCell align="right"><strong>Всего операций</strong></TableCell>
-                <TableCell align="right"><strong>Успешно</strong></TableCell>
-                <TableCell align="right"><strong>Ошибки</strong></TableCell>
-                <TableCell align="center"><strong>Success Rate</strong></TableCell>
-                <TableCell align="right"><strong>Ср. время</strong></TableCell>
-                <TableCell align="right"><strong>IP адресов</strong></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sortedData.map((row, index) => (
-                <TableRow key={index} hover>
-                  <TableCell>
-                    <Typography variant="body2" fontWeight="medium">
-                      {row.executor}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">{row.total_count.toLocaleString()}</TableCell>
-                  <TableCell align="right" sx={{ color: 'success.main' }}>
-                    {row.success_count.toLocaleString()}
-                  </TableCell>
-                  <TableCell align="right" sx={{ color: 'error.main' }}>
-                    {row.error_count.toLocaleString()}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      label={`${row.success_rate}%`}
-                      size="small"
-                      color={getSuccessRateColor(row.success_rate)}
-                    />
-                  </TableCell>
-                  <TableCell align="right">{row.avg_execution_time}ms</TableCell>
-                  <TableCell align="right">{row.unique_ips}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Детальная статистика по пользователям API. Нажмите на заголовок, чтобы отсортировать.
+          </Typography>
+        </Box>
+        <ReportTable
+          columns={columns}
+          rows={sorted}
+          rowKey={(r) => r.executor ?? 'none'}
+          defaultSortKey="total"
+          emptyText="Нет данных для отображения. Выберите другой период времени."
+        />
       </Paper>
     </Box>
   );

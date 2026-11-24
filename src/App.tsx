@@ -9,6 +9,7 @@ import { Header } from '@/components/Header';
 import { StoragePage } from '@/pages/StoragePage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import { HistoryPage } from '@/pages/HistoryPage';
+import { WarehouseProvider } from '@/hooks/useWarehouse';
 
 // Создаем клиент React Query
 const queryClient = new QueryClient({
@@ -87,6 +88,7 @@ function App() {
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <BrowserRouter>
+            <WarehouseProvider>
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
               {/* Общий Header для всех страниц */}
               <Header
@@ -109,6 +111,7 @@ function App() {
                 <Route path="/reports" element={<ReportsPage />} />
               </Routes>
             </Box>
+            </WarehouseProvider>
           </BrowserRouter>
         </ThemeProvider>
       </QueryClientProvider>

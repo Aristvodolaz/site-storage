@@ -58,6 +58,13 @@ export interface GroupedDataByExecutor {
   unique_ips: number;
 }
 
+// Выработка: одна строка = (исполнитель, тип операции склада)
+export interface ExecutorOutputRow {
+  executor: string | null; // null / '' = системные операции
+  operationType: 'PLACE' | 'PICK' | 'INVENTORY' | 'MOVE';
+  cnt: number;
+}
+
 export interface GroupedDataByStatusCode {
   status_code: number;
   total_count: number;

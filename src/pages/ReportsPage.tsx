@@ -18,6 +18,7 @@ import { TimeRangeSelector } from '@/components/reports/TimeRangeSelector';
 import { ActivityChart } from '@/components/reports/ActivityChart';
 import { OperationsTable } from '@/components/reports/OperationsTable';
 import { UsersTable } from '@/components/reports/UsersTable';
+import { ExecutorOutputTable } from '@/components/reports/ExecutorOutputTable';
 import { DetailsTable } from '@/components/reports/DetailsTable';
 
 import { useReports } from '@/hooks/useReports';
@@ -122,6 +123,10 @@ export const ReportsPage: React.FC = () => {
         {!isLoading && reportData && (
           <>
             {/* Сводка */}
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Склад из шапки влияет на остатки, историю и выработку по сотрудникам. Сводка и таблицы логов API
+              считаются по всем складам: в логах нет привязки к складу.
+            </Alert>
             <ReportSummary summary={reportData.summary} />
 
             {/* Вкладки */}
@@ -149,7 +154,10 @@ export const ReportsPage: React.FC = () => {
               )}
 
               {activeTab === 2 && (
-                <UsersTable data={reportData.grouped_data as GroupedDataByExecutor[]} />
+                <>
+                  <ExecutorOutputTable dateFrom={dateFrom} dateTo={dateTo} />
+                  <UsersTable data={reportData.grouped_data as GroupedDataByExecutor[]} />
+                </>
               )}
 
               {activeTab === 3 && (

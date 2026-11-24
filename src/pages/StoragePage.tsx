@@ -8,6 +8,7 @@ import { StatusBar } from '@/components/StatusBar';
 import { TableStats } from '@/components/TableStats';
 
 import { useItems } from '@/hooks/useItems';
+import { useWarehouse } from '@/hooks/useWarehouse';
 import { filterItems, buildFacets, describeFilters, EMPTY_FILTERS } from '@/utils/filters';
 import { exportToExcel, ReportMeta } from '@/utils/export';
 import { printReport } from '@/utils/print';
@@ -26,10 +27,9 @@ interface StoragePageProps {
 }
 
 export const StoragePage: React.FC<StoragePageProps> = ({ onDataChange }) => {
-  const [filters, setFilters] = useState<FilterOptions>({
-    ...EMPTY_FILTERS,
-    warehouse: 1383,
-  });
+  const { warehouse } = useWarehouse();
+  const [userFilters, setFilters] = useState<FilterOptions>(EMPTY_FILTERS);
+  const filters = useMemo<FilterOptions>(() => ({ ...userFilters, warehouse }), [userFilters, warehouse]);
 
   const [snackbar, setSnackbar] = useState<{
     open: boolean;

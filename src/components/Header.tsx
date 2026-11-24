@@ -9,7 +9,12 @@ import {
   CircularProgress,
   Tabs,
   Tab,
+  Select,
+  MenuItem,
+  FormControl,
 } from '@mui/material';
+import { WAREHOUSES } from '@/utils/warehouses';
+import { useWarehouse } from '@/hooks/useWarehouse';
 import {
   Refresh as RefreshIcon,
   FileDownload as ExportIcon,
@@ -41,6 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { warehouse, setWarehouse } = useWarehouse();
 
   // Определяем активную вкладку по текущему пути
   const currentTab =
@@ -63,11 +69,30 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <AppBar position="static" elevation={2}>
-      <Toolbar>
+      <Toolbar sx={{ flexWrap: 'wrap', gap: 1 }}>
         <StorageIcon sx={{ mr: 2 }} />
         <Typography variant="h6" component="div" sx={{ mr: 4 }}>
           STORAGE | Система управления складом
         </Typography>
+
+        {/* Склад общий для всех страниц: влияет на остатки, историю и отчеты */}
+        <FormControl size="small" sx={{ minWidth: 150, mr: 2 }}>
+          <Select
+            value={warehouse}
+            onChange={(e) => setWarehouse(Number(e.target.value))}
+            inputProps={{ 'aria-label': 'Склад' }}
+            sx={{
+              color: 'white',
+              '& .MuiSvgIcon-root': { color: 'white' },
+              '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.5)' },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+            }}
+          >
+            {WAREHOUSES.map((w) => (
+              <MenuItem key={w} value={Number(w)}>Склад {w}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
         {/* Навигационные вкладки */}
         <Tabs 

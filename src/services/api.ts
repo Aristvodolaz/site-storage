@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import { Item, ApiResponse } from '@/types/item';
-import { ReportApiResponse, ReportFilters } from '@/types/reports';
+import { ReportApiResponse, ReportFilters, ExecutorOutputRow } from '@/types/reports';
 import { StorageOperationsFilters, StorageOperationsResponse } from '@/types/history';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://10.171.12.36:3006';
@@ -231,6 +231,17 @@ export class HistoryApi {
       console.error('Ошибка при получении истории операций:', error);
       throw error;
     }
+  }
+
+  /**
+   * Выработка по исполнителям и типам операций (за период)
+   */
+  static async getOutputByExecutor(dateFrom: string, dateTo: string, idSklad: number): Promise<ExecutorOutputRow[]> {
+    const params = new URLSearchParams({ date_from: dateFrom, date_to: dateTo, id_sklad: String(idSklad) });
+    const response: AxiosResponse<{ success: boolean; data: ExecutorOutputRow[] }> = await apiClient.get(
+      `/api/storage/operations/output?${params.toString()}`
+    );
+    return response.data.data;
   }
 }
 
