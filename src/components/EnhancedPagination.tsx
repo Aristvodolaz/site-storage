@@ -76,7 +76,7 @@ export const EnhancedPagination: React.FC<EnhancedPaginationProps> = ({
             mx: 0.25,
             backgroundColor: 'transparent',
             '&:hover': {
-              backgroundColor: 'rgba(25, 118, 210, 0.08)',
+              backgroundColor: 'action.selected',
             },
           }}
         >
@@ -109,7 +109,7 @@ export const EnhancedPagination: React.FC<EnhancedPaginationProps> = ({
             '&:hover': {
               backgroundColor: i === currentPage 
                 ? 'primary.dark' 
-                : 'rgba(25, 118, 210, 0.08)',
+                : 'action.selected',
             },
           }}
         >
@@ -139,7 +139,7 @@ export const EnhancedPagination: React.FC<EnhancedPaginationProps> = ({
             mx: 0.25,
             backgroundColor: 'transparent',
             '&:hover': {
-              backgroundColor: 'rgba(25, 118, 210, 0.08)',
+              backgroundColor: 'action.selected',
             },
           }}
         >
@@ -162,8 +162,9 @@ export const EnhancedPagination: React.FC<EnhancedPaginationProps> = ({
         flexWrap: isMobile ? 'wrap' : 'nowrap',
         gap: 2,
         p: 2,
-        borderTop: '1px solid rgba(224, 224, 224, 1)',
-        backgroundColor: 'rgba(248, 249, 250, 1)',
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        backgroundColor: 'background.default',
         minHeight: '64px',
       }}
     >

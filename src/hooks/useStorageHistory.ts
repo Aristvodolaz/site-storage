@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { HistoryApi } from '@/services/api';
 import { StorageOperationsFilters } from '@/types/history';
 
@@ -10,6 +10,8 @@ export const useStorageHistory = (filters: StorageOperationsFilters) => {
     queryKey: ['storage-history', filters],
     queryFn: async () => HistoryApi.getOperations(filters),
     staleTime: 0,
+    // окно дат сдвигается каждые 10 сек, без этого таблица мигает спиннером на каждом обновлении
+    placeholderData: keepPreviousData,
     refetchInterval: LIVE_REFETCH_MS,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,

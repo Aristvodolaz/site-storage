@@ -127,12 +127,13 @@ export const TableStats: React.FC<TableStatsProps> = ({
                 alignItems: 'center',
                 gap: 1.5,
                 p: isMobile ? 1 : 1.5,
-                borderRadius: 1,
-                backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                border: '1px solid rgba(0, 0, 0, 0.05)',
+                borderRadius: 2,
+                backgroundColor: 'background.default',
+                border: '1px solid',
+                borderColor: 'divider',
                 transition: 'all 0.2s ease',
                 '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  backgroundColor: 'action.hover',
                   transform: 'translateY(-1px)',
                 },
               }}
@@ -197,7 +198,7 @@ export const TableStats: React.FC<TableStatsProps> = ({
                       mt: 0.5,
                       height: 4,
                       borderRadius: 2,
-                      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                      backgroundColor: 'action.disabledBackground',
                     }}
                   />
                 )}

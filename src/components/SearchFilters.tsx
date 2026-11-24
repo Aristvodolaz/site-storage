@@ -92,7 +92,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
   );
 
   return (
-    <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
+    <Paper elevation={0} sx={{ p: { xs: 1.5, md: 2 }, mb: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
         <Badge badgeContent={activeCount} color="primary">
           <Typography variant="h6">Поиск и фильтры</Typography>
@@ -166,13 +166,13 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
 
       </Grid>
 
-      <Accordion disableGutters elevation={0} sx={{ mt: 1, '&:before': { display: 'none' } }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 0 }}>
+      <Accordion disableGutters elevation={0} sx={{ mt: 1.5, bgcolor: 'transparent', '&:before': { display: 'none' } }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 0, minHeight: 40 }}>
           <Typography variant="subtitle2" color="text.secondary">
             Расширенные фильтры{activeCount > 0 ? ` (активно: ${activeCount})` : ''}
           </Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ px: 0 }}>
+        <AccordionDetails sx={{ px: 0, pt: 0 }}>
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>

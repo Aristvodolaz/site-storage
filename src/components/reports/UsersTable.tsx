@@ -1,14 +1,14 @@
 import React from 'react';
-import { Paper, Typography, Chip, Box } from '@mui/material';
+import { Paper, Typography, Chip, Box, useTheme } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { GroupedDataByExecutor } from '@/types/reports';
+import { chartStyle, seriesColors } from '@/theme';
 import { ReportTable, ReportColumn } from './ReportTable';
 
 interface UsersTableProps {
   data: GroupedDataByExecutor[];
 }
 
-const COLORS = ['#1976d2', '#2e7d32', '#ed6c02', '#9c27b0', '#d32f2f', '#0288d1', '#7b1fa2', '#c2185b'];
 const NO_EXECUTOR_LABEL = 'Без исполнителя (системные)';
 
 // Пустой исполнитель в логах — это системные запросы, а не «null»
@@ -58,6 +58,8 @@ const columns: ReportColumn<GroupedDataByExecutor>[] = [
 ];
 
 export const UsersTable: React.FC<UsersTableProps> = ({ data }) => {
+  const theme = useTheme();
+  const colors = seriesColors[theme.palette.mode];
   const sorted = [...data].sort((a, b) => b.total_count - a.total_count);
 
   // Топ-8 для круговой диаграммы; остальные — в таблице
@@ -80,16 +82,20 @@ export const UsersTable: React.FC<UsersTableProps> = ({ data }) => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                label={({ name, percent, x, y, textAnchor }) => (
+                  <text x={x} y={y} textAnchor={textAnchor} fill={theme.palette.text.primary} fontSize={12}>
+                    {`${name}: ${(percent * 100).toFixed(1)}%`}
+                  </text>
+                )}
                 outerRadius={100}
                 dataKey="value"
               >
                 {pieData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                 ))}
               </Pie>
-              <Tooltip />
-              <Legend />
+              <Tooltip contentStyle={chartStyle(theme).tooltip.contentStyle} itemStyle={chartStyle(theme).tooltip.itemStyle} />
+              <Legend wrapperStyle={chartStyle(theme).legend.wrapperStyle} />
             </PieChart>
           </ResponsiveContainer>
         </Paper>

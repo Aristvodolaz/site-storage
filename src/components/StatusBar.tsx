@@ -48,8 +48,9 @@ export const StatusBar: React.FC<StatusBarProps> = ({
     <Box
       sx={{
         p: 1,
-        borderTop: '1px solid rgba(0, 0, 0, 0.12)',
-        backgroundColor: '#f5f5f5',
+        borderTop: 1,
+        borderColor: 'divider',
+        backgroundColor: 'background.paper',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',

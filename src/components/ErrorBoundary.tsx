@@ -70,7 +70,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 color="error"
                 sx={{
                   fontFamily: 'monospace',
-                  backgroundColor: '#f5f5f5',
+                  backgroundColor: 'action.hover',
                   p: 2,
                   borderRadius: 1,
                   mb: 2,

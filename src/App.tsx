@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline, Box } from '@mui/material';
-import { ruRU } from '@mui/x-data-grid';
+import { ThemeProvider } from '@mui/material/styles';
+import { CssBaseline, Box, useMediaQuery } from '@mui/material';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { makeTheme } from '@/theme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Header } from '@/components/Header';
 import { StoragePage } from '@/pages/StoragePage';
@@ -23,50 +23,11 @@ const queryClient = new QueryClient({
   },
 });
 
-// Создаем тему Material-UI
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-    background: {
-      default: '#f5f5f5',
-      paper: '#ffffff',
-    },
-  },
-  typography: {
-    fontFamily: [
-      'Roboto',
-      'Arial',
-      'sans-serif',
-    ].join(','),
-    h6: {
-      fontWeight: 600,
-    },
-  },
-  components: {
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0px 2px 4px -1px rgba(0,0,0,0.2)',
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0px 2px 8px rgba(0,0,0,0.1)',
-        },
-      },
-    },
-  },
-}, ruRU);
-
 function App() {
+  // Тема следует за системной настройкой светлая/тёмная
+  const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
+  const theme = useMemo(() => makeTheme(prefersDark ? 'dark' : 'light'), [prefersDark]);
+
   const [storagePageData, setStoragePageData] = useState<{
     totalItems: number;
     filteredItems: number;
@@ -97,8 +58,6 @@ function App() {
                 isLoading={storagePageData.isLoading}
                 lastUpdated={storagePageData.lastUpdated}
                 onRefresh={storagePageData.onRefresh}
-                onExport={storagePageData.onExport}
-                onPrint={storagePageData.onPrint}
               />
 
               {/* Роуты */}

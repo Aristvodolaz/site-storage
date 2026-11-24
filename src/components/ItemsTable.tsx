@@ -233,7 +233,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
                   <Chip
                     label="✕"
                     size="small"
-                    sx={{ bgcolor: '#D32F2F', color: 'white', fontWeight: 'bold', minWidth: 28, height: 20, fontSize: '11px' }}
+                    sx={{ bgcolor: 'error.main', color: 'error.contrastText', fontWeight: 'bold', minWidth: 28, height: 20, fontSize: '11px' }}
                   />
                 </Tooltip>
               )}
@@ -242,7 +242,7 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
                   <Chip
                     label="?"
                     size="small"
-                    sx={{ bgcolor: '#F57C00', color: 'white', fontWeight: 'bold', minWidth: 28, height: 20, fontSize: '11px' }}
+                    sx={{ bgcolor: 'warning.main', color: 'warning.contrastText', fontWeight: 'bold', minWidth: 28, height: 20, fontSize: '11px' }}
                   />
                 </Tooltip>
               )}
@@ -359,8 +359,9 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
           // Горизонтальный скролл
           '& .MuiDataGrid-main': {
             '& .MuiDataGrid-columnHeaders': {
-              borderBottom: '2px solid rgba(25, 118, 210, 0.2)',
-              backgroundColor: 'rgba(25, 118, 210, 0.08)',
+              borderBottom: '2px solid',
+              borderBottomColor: 'primary.light',
+              backgroundColor: 'action.selected',
               minHeight: '56px !important',
             },
             '& .MuiDataGrid-columnHeader': {
@@ -372,16 +373,17 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
           // Строки таблицы
           '& .MuiDataGrid-row': {
             '&:hover': {
-              backgroundColor: 'rgba(25, 118, 210, 0.04)',
+              backgroundColor: 'action.hover',
             },
             '&:nth-of-type(even)': {
-              backgroundColor: 'rgba(0, 0, 0, 0.02)',
+              backgroundColor: 'action.hover',
             },
           },
-          
+
           // Ячейки
           '& .MuiDataGrid-cell': {
-            borderRight: '1px solid rgba(224, 224, 224, 0.5)',
+            borderRight: '1px solid',
+            borderRightColor: 'divider',
             fontSize: '0.875rem',
             '&:focus': {
               outline: 'none',
@@ -390,26 +392,30 @@ export const ItemsTable: React.FC<ItemsTableProps> = ({
           
           // Закрепленные колонки
           '& .MuiDataGrid-cell--pinnedLeft': {
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            borderRight: '2px solid rgba(25, 118, 210, 0.2)',
+            backgroundColor: 'background.paper',
+            borderRight: '2px solid',
+            borderColor: 'primary.light',
           },
           '& .MuiDataGrid-columnHeader--pinnedLeft': {
-            backgroundColor: 'rgba(25, 118, 210, 0.12)',
-            borderRight: '2px solid rgba(25, 118, 210, 0.3)',
+            backgroundColor: 'action.selected',
+            borderRight: '2px solid',
+            borderRightColor: 'primary.light',
           },
-          
+
           // Панель инструментов
           '& .MuiDataGrid-toolbarContainer': {
             padding: '8px 16px',
-            borderBottom: '1px solid rgba(224, 224, 224, 1)',
-            backgroundColor: 'rgba(248, 249, 250, 1)',
+            borderBottom: '1px solid',
+            borderBottomColor: 'divider',
+            backgroundColor: 'background.default',
             minHeight: '56px',
           },
-          
+
           // Пагинация
           '& .MuiDataGrid-footerContainer': {
-            borderTop: '2px solid rgba(224, 224, 224, 1)',
-            backgroundColor: 'rgba(248, 249, 250, 1)',
+            borderTop: '1px solid',
+            borderTopColor: 'divider',
+            backgroundColor: 'background.default',
             minHeight: '56px',
           },
           

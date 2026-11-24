@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Paper, Typography, Box } from '@mui/material';
+import { Grid, Paper, Typography, Box, useTheme } from '@mui/material';
 import {
   CheckCircle as SuccessIcon,
   Error as ErrorIcon,
@@ -65,6 +65,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, icon, color, su
 );
 
 export const ReportSummary: React.FC<ReportSummaryProps> = ({ summary }) => {
+  const { palette } = useTheme();
   return (
     <Grid container spacing={2} sx={{ mb: 3 }}>
       <Grid item xs={12} sm={6} md={3}>
@@ -72,7 +73,7 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ summary }) => {
           title="Всего операций"
           value={summary.total_operations.toLocaleString()}
           icon={<TotalIcon />}
-          color="#1976d2"
+          color={palette.primary.main}
         />
       </Grid>
 
@@ -81,7 +82,7 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ summary }) => {
           title="Успешных"
           value={summary.successful_operations.toLocaleString()}
           icon={<SuccessIcon />}
-          color="#2e7d32"
+          color={palette.success.main}
           subtitle={`${summary.success_rate}% успеха`}
         />
       </Grid>
@@ -91,7 +92,7 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ summary }) => {
           title="Ошибок"
           value={summary.failed_operations.toLocaleString()}
           icon={<ErrorIcon />}
-          color="#d32f2f"
+          color={palette.error.main}
           subtitle={`${(100 - parseFloat(summary.success_rate)).toFixed(2)}% ошибок`}
         />
       </Grid>
@@ -101,7 +102,7 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ summary }) => {
           title="Среднее время"
           value={`${summary.avg_execution_time_ms}ms`}
           icon={<SpeedIcon />}
-          color="#ed6c02"
+          color={palette.warning.main}
           subtitle={`Макс: ${summary.max_execution_time_ms}ms`}
         />
       </Grid>
