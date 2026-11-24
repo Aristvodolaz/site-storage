@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
-import { Paper, Typography, Box, Alert, CircularProgress } from '@mui/material';
+import { Paper, Typography, Box, Alert, CircularProgress, useTheme } from '@mui/material';
 import { useExecutorOutput } from '@/hooks/useReports';
 import { useWarehouse } from '@/hooks/useWarehouse';
 import type { ExecutorOutputRow } from '@/types/reports';
 import { ReportTable, ReportColumn } from './ReportTable';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { chartStyle, seriesColors } from '@/theme';
 
 type OpType = ExecutorOutputRow['operationType'];
 
@@ -68,11 +70,20 @@ interface ExecutorOutputTableProps {
 
 export const ExecutorOutputTable: React.FC<ExecutorOutputTableProps> = ({ dateFrom, dateTo }) => {
   const { warehouse } = useWarehouse();
+  const theme = useTheme();
+  const style = chartStyle(theme);
+  const colors = seriesColors[theme.palette.mode];
   const { data, isLoading, error } = useExecutorOutput(dateFrom, dateTo, warehouse);
 
   const all = useMemo(() => buildRows(data ?? []), [data]);
   const people = useMemo(() => all.filter((r) => r.name !== ''), [all]);
   const system = useMemo(() => all.filter((r) => r.name === ''), [all]);
+
+  // Диаграмма: доля сотрудников в общем количестве операций, топ-8 по итогу
+  const pieData = useMemo(
+    () => [...people].sort((a, b) => b.total - a.total).slice(0, 8).map((r) => ({ name: r.name, value: r.total })),
+    [people],
+  );
 
   const personColumns = useMemo(() => buildColumns('Сотрудник'), []);
   const systemColumns = useMemo(() => buildColumns('Источник'), []);
@@ -100,6 +111,33 @@ export const ExecutorOutputTable: React.FC<ExecutorOutputTableProps> = ({ dateFr
             Склад {warehouse} · количество складских операций за период по типам
           </Typography>
         </Box>
+        {pieData.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={100}
+                  dataKey="value"
+                  label={({ name, percent, x, y, textAnchor }) => (
+                    <text x={x} y={y} textAnchor={textAnchor} fill={theme.palette.text.primary} fontSize={12}>
+                      {`${name}: ${((percent ?? 0) * 100).toFixed(1)}%`}
+                    </text>
+                  )}
+                >
+                  {pieData.map((_, i) => (
+                    <Cell key={`cell-${i}`} fill={colors[i % colors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={style.tooltip.contentStyle} itemStyle={style.tooltip.itemStyle} />
+                <Legend wrapperStyle={style.legend.wrapperStyle} />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
+        )}
         <ReportTable
           columns={personColumns}
           rows={people}
