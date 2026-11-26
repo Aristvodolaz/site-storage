@@ -20,7 +20,7 @@ const now = (): string => {
 
 /**
  * Открывает новое окно с версией отчёта для печати и вызывает печать.
- * Печатается ровно то, что отфильтровано (все строки, без пагинации).
+ * Печатается ровно то, что отфильтровано (все строки, без пагинации) и только видимые в таблице столбцы.
  */
 export const printReport = (items: Item[], meta: ReportMeta = {}): void => {
   // noopener делает window.open() null → печать не открывалась; контент пишем сами, opener не опасен
@@ -33,6 +33,36 @@ export const printReport = (items: Item[], meta: ReportMeta = {}): void => {
   const totalQuantity =
     meta.totalQuantity ?? items.reduce((s, i) => s + (i.product_qnt || 0), 0);
 
+  // Столбец печатается, если виден хотя бы один из его полей (поле → false = скрыто)
+  const isVisible = (...fields: string[]) =>
+    fields.some((f) => meta.columnVisibility?.[f] !== false);
+
+  const allColumns = [
+    { key: 'name', head: 'Название', show: isVisible('name'), cell: (i: Item) => esc(i.name) },
+    { key: 'article', head: 'Артикул', show: isVisible('article'), cell: (i: Item) => esc(i.article) },
+    { key: 'shk', head: 'ШК', show: isVisible('shk'), cell: (i: Item) => esc(i.shk) },
+    {
+      key: 'product_qnt', head: 'Кол-во', num: true, show: isVisible('product_qnt'),
+      cell: (i: Item) => esc(i.product_qnt),
+    },
+    { key: 'prunit_name', head: 'ЕХ', show: isVisible('prunit_name'), cell: (i: Item) => esc(i.prunit_name) },
+    {
+      key: 'wr_name', head: 'Ячейка', show: isVisible('wr_name', 'wr_shk'),
+      cell: (i: Item) =>
+        esc((isVisible('wr_name') && formatCellName(i.wr_name)) || (isVisible('wr_shk') ? i.wr_shk : '')),
+    },
+    { key: 'condition_state', head: 'Состояние', show: isVisible('condition_state'), cell: (i: Item) => esc(i.condition_state) },
+    {
+      key: 'expirationDateFormatted', head: 'СГ', show: isVisible('expirationDateFormatted'),
+      cell: (i: Item) => esc(expirationText(i.expiration_date)),
+    },
+    { key: 'reason', head: 'Причина', show: isVisible('reason'), cell: (i: Item) => esc(i.reason) },
+    { key: 'executor', head: 'Исполнитель', show: isVisible('executor'), cell: (i: Item) => esc(i.executor) },
+  ];
+  const columns = allColumns.filter((c) => c.show);
+  const qtyIndex = columns.findIndex((c) => c.key === 'product_qnt');
+  const showTotal = qtyIndex !== -1;
+
   const filterRows = (meta.filterSummary || [])
     .map((r) => `<div><span class="k">${esc(r.label)}:</span> ${esc(r.value)}</div>`)
     .join('');
@@ -41,19 +71,20 @@ export const printReport = (items: Item[], meta: ReportMeta = {}): void => {
     .map(
       (i, idx) => `<tr>
         <td class="num">${idx + 1}</td>
-        <td>${esc(i.name)}</td>
-        <td>${esc(i.article)}</td>
-        <td>${esc(i.shk)}</td>
-        <td class="num">${esc(i.product_qnt)}</td>
-        <td>${esc(i.prunit_name)}</td>
-        <td>${esc(formatCellName(i.wr_name) || i.wr_shk)}</td>
-        <td>${esc(i.condition_state)}</td>
-        <td>${esc(expirationText(i.expiration_date))}</td>
-        <td>${esc(i.reason)}</td>
-        <td>${esc(i.executor)}</td>
+        ${columns.map((c) => `<td${c.num ? ' class="num"' : ''}>${c.cell(i)}</td>`).join('')}
       </tr>`
     )
     .join('');
+
+  const head = columns
+    .map((c) => `<th${c.num ? ' class="num"' : ''}>${c.head}</th>`)
+    .join('');
+
+  const footer = showTotal
+    ? `<tfoot><tr>${qtyIndex ? `<td colspan="${qtyIndex + 1}">Итого</td>` : ''}` +
+      `<td class="num">${totalQuantity.toLocaleString('ru-RU')}</td>` +
+      `${columns.length - qtyIndex - 1 ? `<td colspan="${columns.length - qtyIndex - 1}"></td>` : ''}</tr></tfoot>`
+    : '';
 
   win.document.write(`<!doctype html>
 <html lang="ru"><head><meta charset="utf-8">
@@ -86,15 +117,13 @@ export const printReport = (items: Item[], meta: ReportMeta = {}): void => {
     <div><span class="k">Сформирован:</span> ${esc(now())}</div>
     ${filterRows}
   </div>
-  <div class="summary">Строк: ${items.length} &nbsp;|&nbsp; Итого «Общее кол-во»: ${totalQuantity.toLocaleString('ru-RU')}</div>
+  <div class="summary">Строк: ${items.length}${showTotal ? ` &nbsp;|&nbsp; Итого «Общее кол-во»: ${totalQuantity.toLocaleString('ru-RU')}` : ''}</div>
   <table>
     <thead><tr>
-      <th class="num">№</th><th>Название</th><th>Артикул</th><th>ШК</th>
-      <th class="num">Кол-во</th><th>ЕХ</th><th>Ячейка</th><th>Состояние</th>
-      <th>СГ</th><th>Причина</th><th>Исполнитель</th>
+      <th class="num">№</th>${head}
     </tr></thead>
     <tbody>${body}</tbody>
-    <tfoot><tr><td colspan="4">Итого</td><td class="num">${totalQuantity.toLocaleString('ru-RU')}</td><td colspan="6"></td></tr></tfoot>
+    ${footer}
   </table>
 </body></html>`);
   win.document.close();

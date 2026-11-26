@@ -37,6 +37,7 @@ export const StoragePage: React.FC<StoragePageProps> = ({ onDataChange }) => {
   }>({ open: false, message: '', severity: 'info' });
 
   const { items, isLoading, error, refetch } = useItems(filters.warehouse);
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
 
   const facets = useMemo(() => buildFacets(items), [items]);
 
@@ -50,8 +51,9 @@ export const StoragePage: React.FC<StoragePageProps> = ({ onDataChange }) => {
       title: `Отчёт по остаткам склада ${filters.warehouse}`,
       totalQuantity: filteredItems.reduce((s, i) => s + (i.product_qnt || 0), 0),
       filterSummary: describeFilters(filters),
+      columnVisibility,
     }),
-    [filters, filteredItems]
+    [filters, filteredItems, columnVisibility]
   );
 
   const handleRefresh = useCallback(() => {
@@ -130,6 +132,7 @@ export const StoragePage: React.FC<StoragePageProps> = ({ onDataChange }) => {
         <ItemsTable
           items={filteredItems}
           loading={isLoading}
+          onColumnVisibilityChange={setColumnVisibility}
         />
       </Container>
 

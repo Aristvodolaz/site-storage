@@ -1,4 +1,4 @@
-import { useMemo, useState, type ComponentProps, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   DataGrid,
   GridToolbarColumnsButton,
@@ -191,6 +191,8 @@ export interface DataTableProps<T extends GridValidRowModel> {
   height?: number;
   /** Подпись над таблицей, например итоги */
   caption?: ReactNode;
+  /** Видимость столбцов (поле → видим ли); вызывается при старте и при каждом изменении */
+  onColumnVisibilityChange?: (model: Record<string, boolean>) => void;
 }
 
 export function DataTable<T extends GridValidRowModel>({
@@ -211,9 +213,19 @@ export function DataTable<T extends GridValidRowModel>({
   hiddenColumns = [],
   height = 560,
   caption,
+  onColumnVisibilityChange,
 }: DataTableProps<T>) {
   const apiRef = useGridApiRef();
   const saved = useMemo(() => readSaved(storageKey), [storageKey]);
+  // начальная видимость фиксируется при монтировании, дальше ее ведет сама сетка
+  const [initialVisibility] = useState(
+    () => saved?.columnVisibilityModel ?? Object.fromEntries(hiddenColumns.map((f) => [f, false])),
+  );
+
+  useEffect(() => {
+    onColumnVisibilityChange?.(initialVisibility);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- только при монтировании
+  }, []);
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>([]);
   const [widthPreset, setWidthPreset] = useState<WidthPreset>(saved?.widthPreset ?? 'normal');
 
@@ -235,7 +247,7 @@ export function DataTable<T extends GridValidRowModel>({
 
   const initialState: GridInitialState = {
     columns: {
-      columnVisibilityModel: saved?.columnVisibilityModel ?? Object.fromEntries(hiddenColumns.map((f) => [f, false])),
+      columnVisibilityModel: initialVisibility,
     },
     sorting: { sortModel: saved?.sortModel ?? defaultSort ?? [] },
     filter: saved?.filterModel ? { filterModel: saved.filterModel } : undefined,
@@ -278,6 +290,7 @@ export function DataTable<T extends GridValidRowModel>({
           onStateChange={(state) => {
             if (storageKey) writeSaved(storageKey, state, widthPreset);
           }}
+          onColumnVisibilityModelChange={(model) => onColumnVisibilityChange?.(model)}
           checkboxSelection={checkboxSelection}
           disableRowSelectionOnClick
           rowSelectionModel={selectionModel}

@@ -10,6 +10,7 @@ import { naturalCompare, formatCellName } from '@/utils/filters';
 interface ItemsTableProps {
   items: Item[];
   loading?: boolean;
+  onColumnVisibilityChange?: (model: Record<string, boolean>) => void;
 }
 
 // Некорректная/пустая дата в данных не должна ронять всю страницу (RangeError в date-fns).
@@ -19,7 +20,7 @@ const safeFormatDate = (value?: string): string => {
   return isValid(date) ? format(date, 'yyyy-MM-dd HH:mm') : String(value);
 };
 
-export const ItemsTable = ({ items, loading = false }: ItemsTableProps) => {
+export const ItemsTable = ({ items, loading = false, onColumnVisibilityChange }: ItemsTableProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
@@ -261,6 +262,7 @@ export const ItemsTable = ({ items, loading = false }: ItemsTableProps) => {
         pageSize={20}
         pageSizeOptions={[10, 20, 50, 100, 200]}
         height={isMobile ? 500 : 600}
+        onColumnVisibilityChange={onColumnVisibilityChange}
       />
     </ScrollIndicator>
   );

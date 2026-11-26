@@ -10,6 +10,8 @@ export interface ReportMeta {
   totalQuantity?: number;
   /** Описание активных фильтров (label / value) */
   filterSummary?: { label: string; value: string }[];
+  /** Скрытые в таблице поля (поле → false): печать выводит только видимые столбцы */
+  columnVisibility?: Record<string, boolean>;
 }
 
 const expirationText = (value?: string): string =>
