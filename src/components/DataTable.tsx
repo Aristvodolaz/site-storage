@@ -185,8 +185,6 @@ export interface DataTableProps<T extends GridValidRowModel> {
   /** Клиентская пагинация: размер страницы и варианты выбора */
   pageSize?: number;
   pageSizeOptions?: number[];
-  /** false — все строки в одном списке (виртуализация), без страниц */
-  pagination?: boolean;
   /** Колонки, скрытые по умолчанию (пользовательские настройки важнее) */
   hiddenColumns?: string[];
   /** Высота таблицы, виртуализация работает только при фиксированной высоте */
@@ -214,7 +212,6 @@ export function DataTable<T extends GridValidRowModel>({
   server,
   pageSize = 25,
   pageSizeOptions = [25, 50, 100],
-  pagination = true,
   hiddenColumns = [],
   height = 560,
   caption,
@@ -268,7 +265,6 @@ export function DataTable<T extends GridValidRowModel>({
     if (storageKey) writeSaved(storageKey, apiRef.current.state, preset);
   };
 
-  // В типах MIT-версии проп pagination только `true`, но `false` работает: видимые строки = все строки
   const handleExport = (kind: 'csv' | 'xlsx') => {
     const visible = gridVisibleColumnDefinitionsSelector(apiRef).filter((c) => c.field !== '__check__');
     const rowsToExport = selected.length > 0
@@ -306,8 +302,6 @@ export function DataTable<T extends GridValidRowModel>({
           disableRowSelectionOnClick
           rowSelectionModel={selectionModel}
           onRowSelectionModelChange={setSelectionModel}
-          pagination={pagination as true}
-          hideFooterPagination={!pagination}
           pageSizeOptions={pageSizeOptions}
           {...(server
             ? {

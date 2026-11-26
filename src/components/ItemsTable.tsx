@@ -260,7 +260,8 @@ export const ItemsTable = ({ items, loading = false, onColumnVisibilityChange, o
         exportName="inventory_report"
         defaultSort={[{ field: 'name', sort: 'asc' }]}
         hiddenColumns={isMobile ? ['nested_quantity', 'id_sklad', 'reason', 'createDateFormatted', 'updateDateFormatted'] : []}
-        pagination={false}
+        pageSize={20}
+        pageSizeOptions={[10, 20, 50, 100]}
         height={isMobile ? 500 : 600}
         onColumnVisibilityChange={onColumnVisibilityChange}
         onSortModelChange={onSortModelChange}
