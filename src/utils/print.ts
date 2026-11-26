@@ -23,7 +23,8 @@ const now = (): string => {
  * Печатается ровно то, что отфильтровано (все строки, без пагинации).
  */
 export const printReport = (items: Item[], meta: ReportMeta = {}): void => {
-  const win = window.open('', '_blank', 'noopener,noreferrer');
+  // noopener делает window.open() null → печать не открывалась; контент пишем сами, opener не опасен
+  const win = window.open('', '_blank');
   if (!win) {
     alert('Разрешите всплывающие окна для печати отчёта');
     return;
