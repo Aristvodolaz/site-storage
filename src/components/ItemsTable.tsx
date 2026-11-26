@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { Box, Chip, useTheme, useMediaQuery, Tooltip } from '@mui/material';
 import { Item } from '@/types/item';
 import { format, parseISO, isValid } from 'date-fns';
@@ -11,6 +11,7 @@ interface ItemsTableProps {
   items: Item[];
   loading?: boolean;
   onColumnVisibilityChange?: (model: Record<string, boolean>) => void;
+  onSortModelChange?: (model: GridSortModel) => void;
 }
 
 // Некорректная/пустая дата в данных не должна ронять всю страницу (RangeError в date-fns).
@@ -20,7 +21,7 @@ const safeFormatDate = (value?: string): string => {
   return isValid(date) ? format(date, 'yyyy-MM-dd HH:mm') : String(value);
 };
 
-export const ItemsTable = ({ items, loading = false, onColumnVisibilityChange }: ItemsTableProps) => {
+export const ItemsTable = ({ items, loading = false, onColumnVisibilityChange, onSortModelChange }: ItemsTableProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
@@ -259,10 +260,10 @@ export const ItemsTable = ({ items, loading = false, onColumnVisibilityChange }:
         exportName="inventory_report"
         defaultSort={[{ field: 'name', sort: 'asc' }]}
         hiddenColumns={isMobile ? ['nested_quantity', 'id_sklad', 'reason', 'createDateFormatted', 'updateDateFormatted'] : []}
-        pageSize={20}
-        pageSizeOptions={[10, 20, 50, 100, 200]}
+        pagination={false}
         height={isMobile ? 500 : 600}
         onColumnVisibilityChange={onColumnVisibilityChange}
+        onSortModelChange={onSortModelChange}
       />
     </ScrollIndicator>
   );

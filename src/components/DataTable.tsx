@@ -185,6 +185,8 @@ export interface DataTableProps<T extends GridValidRowModel> {
   /** Клиентская пагинация: размер страницы и варианты выбора */
   pageSize?: number;
   pageSizeOptions?: number[];
+  /** false — все строки в одном списке (виртуализация), без страниц */
+  pagination?: boolean;
   /** Колонки, скрытые по умолчанию (пользовательские настройки важнее) */
   hiddenColumns?: string[];
   /** Высота таблицы, виртуализация работает только при фиксированной высоте */
@@ -193,6 +195,8 @@ export interface DataTableProps<T extends GridValidRowModel> {
   caption?: ReactNode;
   /** Видимость столбцов (поле → видим ли); вызывается при старте и при каждом изменении */
   onColumnVisibilityChange?: (model: Record<string, boolean>) => void;
+  /** Текущая сортировка сетки; вызывается при старте и при каждом изменении */
+  onSortModelChange?: (model: GridSortModel) => void;
 }
 
 export function DataTable<T extends GridValidRowModel>({
@@ -210,10 +214,12 @@ export function DataTable<T extends GridValidRowModel>({
   server,
   pageSize = 25,
   pageSizeOptions = [25, 50, 100],
+  pagination = true,
   hiddenColumns = [],
   height = 560,
   caption,
   onColumnVisibilityChange,
+  onSortModelChange,
 }: DataTableProps<T>) {
   const apiRef = useGridApiRef();
   const saved = useMemo(() => readSaved(storageKey), [storageKey]);
@@ -222,8 +228,11 @@ export function DataTable<T extends GridValidRowModel>({
     () => saved?.columnVisibilityModel ?? Object.fromEntries(hiddenColumns.map((f) => [f, false])),
   );
 
+  const [initialSort] = useState<GridSortModel>(() => saved?.sortModel ?? defaultSort ?? []);
+
   useEffect(() => {
     onColumnVisibilityChange?.(initialVisibility);
+    onSortModelChange?.(initialSort);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- только при монтировании
   }, []);
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>([]);
@@ -249,7 +258,7 @@ export function DataTable<T extends GridValidRowModel>({
     columns: {
       columnVisibilityModel: initialVisibility,
     },
-    sorting: { sortModel: saved?.sortModel ?? defaultSort ?? [] },
+    sorting: { sortModel: initialSort },
     filter: saved?.filterModel ? { filterModel: saved.filterModel } : undefined,
     pagination: server ? undefined : { paginationModel: { pageSize, page: 0 } },
   };
@@ -259,6 +268,7 @@ export function DataTable<T extends GridValidRowModel>({
     if (storageKey) writeSaved(storageKey, apiRef.current.state, preset);
   };
 
+  // В типах MIT-версии проп pagination только `true`, но `false` работает: видимые строки = все строки
   const handleExport = (kind: 'csv' | 'xlsx') => {
     const visible = gridVisibleColumnDefinitionsSelector(apiRef).filter((c) => c.field !== '__check__');
     const rowsToExport = selected.length > 0
@@ -291,10 +301,13 @@ export function DataTable<T extends GridValidRowModel>({
             if (storageKey) writeSaved(storageKey, state, widthPreset);
           }}
           onColumnVisibilityModelChange={(model) => onColumnVisibilityChange?.(model)}
+          onSortModelChange={(model) => onSortModelChange?.(model)}
           checkboxSelection={checkboxSelection}
           disableRowSelectionOnClick
           rowSelectionModel={selectionModel}
           onRowSelectionModelChange={setSelectionModel}
+          pagination={pagination as true}
+          hideFooterPagination={!pagination}
           pageSizeOptions={pageSizeOptions}
           {...(server
             ? {

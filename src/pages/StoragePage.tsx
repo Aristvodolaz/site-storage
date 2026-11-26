@@ -38,6 +38,7 @@ export const StoragePage: React.FC<StoragePageProps> = ({ onDataChange }) => {
 
   const { items, isLoading, error, refetch } = useItems(filters.warehouse);
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
+  const [sortModel, setSortModel] = useState<ReportMeta['sortModel']>([]);
 
   const facets = useMemo(() => buildFacets(items), [items]);
 
@@ -52,8 +53,9 @@ export const StoragePage: React.FC<StoragePageProps> = ({ onDataChange }) => {
       totalQuantity: filteredItems.reduce((s, i) => s + (i.product_qnt || 0), 0),
       filterSummary: describeFilters(filters),
       columnVisibility,
+      sortModel,
     }),
-    [filters, filteredItems, columnVisibility]
+    [filters, filteredItems, columnVisibility, sortModel]
   );
 
   const handleRefresh = useCallback(() => {
@@ -133,6 +135,7 @@ export const StoragePage: React.FC<StoragePageProps> = ({ onDataChange }) => {
           items={filteredItems}
           loading={isLoading}
           onColumnVisibilityChange={setColumnVisibility}
+          onSortModelChange={setSortModel}
         />
       </Container>
 

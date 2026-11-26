@@ -1,6 +1,27 @@
 import { Item } from '@/types/item';
 import { ReportMeta } from './export';
-import { formatCellName } from './filters';
+import { formatCellName, naturalCompare } from './filters';
+
+// Поля сетки, которых нет в Item: сортируем по исходной дате (формат ISO сортируется так же)
+const SORT_SOURCE: Record<string, keyof Item> = {
+  createDateFormatted: 'createDate',
+  updateDateFormatted: 'updateDate',
+  expirationDateFormatted: 'expiration_date',
+};
+
+// Порядок как в сетке: одна колонка, ячейки — natural compare, числа — по значению
+const sortLikeGrid = (items: Item[], sortModel: ReportMeta['sortModel'] = []): Item[] => {
+  const active = sortModel.find((m) => m.sort);
+  if (!active) return items;
+  const key = SORT_SOURCE[active.field] ?? (active.field as keyof Item);
+  const dir = active.sort === 'desc' ? -1 : 1;
+  const compare = (a: unknown, b: unknown): number => {
+    if (key === 'wr_name') return naturalCompare(String(a ?? ''), String(b ?? ''));
+    if (typeof a === 'number' && typeof b === 'number') return a - b;
+    return String(a ?? '').localeCompare(String(b ?? ''), 'ru', { numeric: true });
+  };
+  return [...items].sort((x, y) => dir * compare(x[key], y[key]));
+};
 
 const esc = (v: unknown): string =>
   String(v ?? '')
@@ -22,7 +43,8 @@ const now = (): string => {
  * Открывает новое окно с версией отчёта для печати и вызывает печать.
  * Печатается ровно то, что отфильтровано (все строки, без пагинации) и только видимые в таблице столбцы.
  */
-export const printReport = (items: Item[], meta: ReportMeta = {}): void => {
+export const printReport = (rawItems: Item[], meta: ReportMeta = {}): void => {
+  const items = sortLikeGrid(rawItems, meta.sortModel);
   // noopener делает window.open() null → печать не открывалась; контент пишем сами, opener не опасен
   const win = window.open('', '_blank');
   if (!win) {

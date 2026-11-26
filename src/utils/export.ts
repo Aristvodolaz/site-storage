@@ -12,6 +12,8 @@ export interface ReportMeta {
   filterSummary?: { label: string; value: string }[];
   /** Скрытые в таблице поля (поле → false): печать выводит только видимые столбцы */
   columnVisibility?: Record<string, boolean>;
+  /** Сортировка таблицы (как в сетке): печать идет в том же порядке */
+  sortModel?: { field: string; sort?: 'asc' | 'desc' | null }[];
 }
 
 const expirationText = (value?: string): string =>
